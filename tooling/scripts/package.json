@@ -5,13 +5,15 @@
 	"scripts": {
 		"clean": "git clean -xdf .cache .turbo dist node_modules",
 		"create:user": "dotenv -c -e ../../.env -- tsx ./src/create-user.ts",
+		"seed:lectio": "dotenv -c -e ../../.env -- tsx ./src/seed.ts",
 		"type-check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@repo/auth": "workspace:*",
 		"@repo/database": "workspace:*",
 		"@repo/logs": "workspace:*",
-		"@repo/utils": "workspace:*"
+		"@repo/utils": "workspace:*",
+		"drizzle-orm": "catalog:"
 	},
 	"devDependencies": {
 		"@repo/tsconfig": "workspace:*",
