@@ -26,8 +26,8 @@ describe("getBaseUrl (saas)", () => {
 		expect(getBaseUrl()).toBe("https://my-app.vercel.app");
 	});
 
-	it("returns localhost:3000 by default", () => {
-		expect(getBaseUrl()).toBe("http://localhost:3000");
+	it("returns localhost:4000 by default", () => {
+		expect(getBaseUrl()).toBe("http://localhost:4000");
 	});
 
 	it("uses PORT env when set and no other env vars", () => {

@@ -28,7 +28,7 @@ const getLocaleFromRequest = (request?: Request) => {
 	return (cookies[i18nConfig.localeCookieName] as Locale) ?? i18nConfig.defaultLocale;
 };
 
-const appUrl = getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 3000);
+const appUrl = getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 4000);
 
 export const auth = betterAuth({
 	baseURL: appUrl,
@@ -248,7 +248,7 @@ export const auth = betterAuth({
 
 				const url = new URL(
 					existingUser ? "/login" : "/signup",
-					getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 3000),
+					getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 4000),
 				);
 
 				url.searchParams.set("invitationId", id);

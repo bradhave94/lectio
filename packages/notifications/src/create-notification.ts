@@ -1,4 +1,5 @@
-import { db, NotificationTarget, type NotificationType, type Prisma } from "@repo/database";
+import { db, notification, user, NotificationTarget, type NotificationType } from "@repo/database";
+import { eq } from "drizzle-orm";
 import type { Locale } from "@repo/i18n";
 import { sendEmail } from "@repo/mail";
 
@@ -8,7 +9,7 @@ import { resolveNotificationLink } from "./resolve-link";
 export async function createNotification(input: {
 	userId: string;
 	type: NotificationType;
-	data?: Prisma.InputJsonValue;
+	data?: Record<string, unknown>;
 	link?: string | null;
 	read?: boolean;
 }) {
@@ -28,25 +29,28 @@ export async function createNotification(input: {
 	let created = null;
 
 	if (!inAppDisabled) {
-		created = await db.notification.create({
-			data: {
+		const [row] = await db
+			.insert(notification)
+			.values({
 				userId: input.userId,
 				type: input.type,
-				data: (input.data ?? {}) as Prisma.InputJsonValue,
+				data: input.data ?? {},
 				link: absoluteLink,
 				read: input.read ?? false,
-			},
-		});
+			})
+			.returning();
+		created = row ?? null;
 	}
 
 	if (!emailDisabled) {
-		const user = await db.user.findUnique({
-			where: { id: input.userId },
-			select: { email: true, locale: true },
-		});
+		const [foundUser] = await db
+			.select({ email: user.email, locale: user.locale })
+			.from(user)
+			.where(eq(user.id, input.userId))
+			.limit(1);
 
-		if (user?.email) {
-			const locale = (user.locale as Locale | null | undefined) ?? undefined;
+		if (foundUser?.email) {
+			const locale = (foundUser.locale as Locale | null | undefined) ?? undefined;
 			const dataObj =
 				input.data &&
 				typeof input.data === "object" &&
@@ -63,7 +67,7 @@ export async function createNotification(input: {
 			const message = typeof dataObj.message === "string" ? dataObj.message : undefined;
 
 			await sendEmail({
-				to: user.email,
+				to: foundUser.email,
 				locale,
 				templateId: "notification",
 				context: {

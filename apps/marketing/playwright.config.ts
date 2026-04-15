@@ -16,7 +16,7 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: [["html"]],
 	use: {
-		baseURL: "http://localhost:3001",
+		baseURL: "http://localhost:4001",
 		trace: "on-first-retry",
 		video: {
 			mode: "retain-on-failure",
@@ -33,8 +33,8 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: "pnpm --filter marketing run build && PORT=3001 pnpm --filter marketing run start",
-		url: "http://localhost:3001",
+		command: "pnpm --filter marketing run build && PORT=4001 pnpm --filter marketing run start",
+		url: "http://localhost:4001",
 		reuseExistingServer: !process.env.CI,
 		stdout: "pipe",
 		timeout: 180 * 1000,

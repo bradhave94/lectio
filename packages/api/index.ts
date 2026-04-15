@@ -17,7 +17,7 @@ export const app = new Hono()
 	// Cors middleware
 	.use(
 		cors({
-			origin: getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 3000),
+			origin: getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 4000),
 			allowHeaders: ["Content-Type", "Authorization"],
 			allowMethods: ["POST", "GET", "OPTIONS"],
 			exposeHeaders: ["Content-Length"],

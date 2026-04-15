@@ -3,9 +3,9 @@
  * can replace it at build time (e.g. process.env.NEXT_PUBLIC_SAAS_URL).
  *
  * @param envValue - The env value to use when defined (e.g. process.env.NEXT_PUBLIC_SAAS_URL)
- * @param defaultPort - Port for localhost fallback when no env is set (default: 3000)
+ * @param defaultPort - Port for localhost fallback when no env is set (default: 4000)
  */
-export function getBaseUrl(envValue?: string, defaultPort = 3000): string {
+export function getBaseUrl(envValue?: string, defaultPort = 4000): string {
 	if (envValue) {
 		return envValue;
 	}

@@ -15,7 +15,8 @@
 		"@repo/database": "workspace:*",
 		"@repo/i18n": "workspace:*",
 		"@repo/mail": "workspace:*",
-		"@repo/utils": "workspace:*"
+		"@repo/utils": "workspace:*",
+		"drizzle-orm": "catalog:"
 	},
 	"devDependencies": {
 		"@repo/tsconfig": "workspace:*",

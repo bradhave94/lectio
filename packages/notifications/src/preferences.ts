@@ -1,10 +1,15 @@
-import type { NotificationTarget, NotificationType } from "@repo/database";
-import { db } from "@repo/database";
+import { and, eq } from "drizzle-orm";
+import {
+	db,
+	userNotificationPreference,
+	type NotificationTarget,
+	type NotificationType,
+} from "@repo/database";
 
 export async function getDisabledNotificationPreferences(userId: string) {
-	return await db.userNotificationPreference.findMany({
-		where: { userId },
-		select: { type: true, target: true },
+	return await db.query.userNotificationPreference.findMany({
+		where: eq(userNotificationPreference.userId, userId),
+		columns: { type: true, target: true },
 	});
 }
 
@@ -13,10 +18,12 @@ export async function isNotificationDisabled(
 	type: NotificationType,
 	target: NotificationTarget,
 ) {
-	const row = await db.userNotificationPreference.findUnique({
-		where: {
-			userId_type_target: { userId, type, target },
-		},
+	const row = await db.query.userNotificationPreference.findFirst({
+		where: and(
+			eq(userNotificationPreference.userId, userId),
+			eq(userNotificationPreference.type, type),
+			eq(userNotificationPreference.target, target),
+		),
 	});
 	return Boolean(row);
 }
@@ -28,16 +35,19 @@ export async function setNotificationDisabled(
 	disabled: boolean,
 ) {
 	if (disabled) {
-		await db.userNotificationPreference.upsert({
-			where: {
-				userId_type_target: { userId, type, target },
-			},
-			create: { userId, type, target },
-			update: {},
-		});
+		await db
+			.insert(userNotificationPreference)
+			.values({ userId, type, target })
+			.onConflictDoNothing();
 	} else {
-		await db.userNotificationPreference.deleteMany({
-			where: { userId, type, target },
-		});
+		await db
+			.delete(userNotificationPreference)
+			.where(
+				and(
+					eq(userNotificationPreference.userId, userId),
+					eq(userNotificationPreference.type, type),
+					eq(userNotificationPreference.target, target),
+				),
+			);
 	}
 }

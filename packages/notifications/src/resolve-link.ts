@@ -15,7 +15,7 @@ export function resolveNotificationLink(link: string | null | undefined): string
 	if (/^https?:\/\//i.test(trimmed)) {
 		return trimmed;
 	}
-	const base = getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 3000);
+	const base = getBaseUrl(process.env.NEXT_PUBLIC_SAAS_URL, 4000);
 	try {
 		return new URL(trimmed, base).href;
 	} catch {

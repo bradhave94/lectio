@@ -6,6 +6,8 @@ import {
 	invitation,
 	member,
 	notification,
+	notificationTargetEnum,
+	notificationTypeEnum,
 	organization,
 	passkey,
 	purchase,
@@ -52,3 +54,11 @@ export const UserNotificationPreferenceUpdateSchema = createUpdateSchema(
 	},
 );
 export type UserNotificationPreference = typeof userNotificationPreference.$inferSelect;
+
+export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
+
+export const NotificationTarget = {
+	IN_APP: "IN_APP",
+	EMAIL: "EMAIL",
+} as const;
+export type NotificationTarget = (typeof notificationTargetEnum.enumValues)[number];

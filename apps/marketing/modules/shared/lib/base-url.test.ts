@@ -26,8 +26,8 @@ describe("getBaseUrl (marketing)", () => {
 		expect(getBaseUrl()).toBe("https://my-marketing.vercel.app");
 	});
 
-	it("returns localhost:3001 by default", () => {
-		expect(getBaseUrl()).toBe("http://localhost:3001");
+	it("returns localhost:4001 by default", () => {
+		expect(getBaseUrl()).toBe("http://localhost:4001");
 	});
 
 	it("uses PORT env when set and no other env vars", () => {
