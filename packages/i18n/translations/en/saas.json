@@ -616,5 +616,151 @@
 		"title": "Processing your purchase",
 		"description": "Please wait while we confirm your payment.",
 		"loading": "Confirming your purchase, please wait..."
+	},
+	"lectio": {
+		"nav": {
+			"title": "Lectio plans"
+		},
+		"toast": {
+			"saved": "Saved",
+			"saveError": "Could not save your changes. Please try again."
+		},
+		"status": {
+			"not_started": "Not started",
+			"in_progress": "In progress",
+			"completed": "Completed"
+		},
+		"resourceTypes": {
+			"reading_plan": "Reading plan",
+			"video": "Video",
+			"podcast": "Podcast",
+			"book": "Book",
+			"article": "Article",
+			"other": "Other"
+		},
+		"dashboard": {
+			"title": "My plans",
+			"subtitle": "Build and track your custom Bible reading journey.",
+			"newPlan": "New plan",
+			"emptyTitle": "No plans yet",
+			"emptyDescription": "Create your first custom Bible plan to get started.",
+			"bookCount": "{count, plural, one {# book} other {# books}}",
+			"progress": "Progress",
+			"completedBooks": "{completed} of {total} completed",
+			"openPlan": "Open plan",
+			"openProgress": "Progress",
+			"delete": "Delete plan",
+			"deleteMessage": "Are you sure you want to delete this plan? This action cannot be undone."
+		},
+		"newPlanDialog": {
+			"title": "Create a new plan",
+			"description": "Give your custom plan a title and optional description.",
+			"titleLabel": "Title",
+			"titlePlaceholder": "Acts + Romans study",
+			"descriptionLabel": "Description (optional)",
+			"descriptionPlaceholder": "What is this plan focused on?",
+			"cancel": "Cancel",
+			"create": "Create plan"
+		},
+		"verseOfDay": {
+			"title": "Verse of the day",
+			"openBibleCom": "Open on Bible.com",
+			"unavailable": "Verse of the day is unavailable right now."
+		},
+		"builder": {
+			"titleFallback": "Plan builder",
+			"backToPlans": "Back to plans",
+			"viewProgress": "View progress",
+			"plan": {
+				"titleLabel": "Plan title",
+				"descriptionLabel": "Description",
+				"descriptionPlaceholder": "What is this plan focused on?",
+				"save": "Save plan"
+			},
+			"progress": {
+				"title": "Books completed",
+				"booksCompleted": "{completed} of {total} completed",
+				"openProgressView": "Progress view"
+			},
+			"bookPicker": {
+				"title": "Book picker",
+				"searchPlaceholder": "Search books...",
+				"tabs": {
+					"all": "All",
+					"ot": "OT",
+					"nt": "NT"
+				},
+				"alreadyAdded": "Added",
+				"chaptersCount": "{count} chapters"
+			},
+			"planList": {
+				"title": "Plan",
+				"emptyTitle": "No books added yet",
+				"emptyDescription": "Use the picker to add books to this plan.",
+				"resourcePrefix": "Resource:"
+			},
+			"drawer": {
+				"subtitle": "Book #{position} in your plan",
+				"save": "Save changes",
+				"readOnBibleCom": "Read on Bible.com",
+				"resource": {
+					"title": "Resource",
+					"open": "Open resource",
+					"url": "Resource URL",
+					"label": "Resource label",
+					"labelPlaceholder": "Tim Keller podcast series",
+					"type": "Resource type",
+					"none": "None"
+				},
+				"status": {
+					"title": "Status",
+					"startedAt": "Started {date}"
+				},
+				"notes": {
+					"title": "Notes",
+					"placeholder": "Add notes about this book..."
+				},
+				"readingLog": {
+					"title": "Reading log",
+					"count": "{count, plural, one {# entry} other {# entries}}",
+					"chapter": "Chapter",
+					"date": "Date",
+					"verseFrom": "Verses from",
+					"verseTo": "Verses to",
+					"optional": "Optional",
+					"note": "Note",
+					"notePlaceholder": "Reflection...",
+					"add": "Add entry",
+					"empty": "No reading entries yet.",
+					"delete": "Delete entry",
+					"selectChapter": "Select chapter",
+					"chapterRequired": "Please select a chapter first.",
+					"verseRangeIncomplete": "Please provide both verse start and verse end.",
+					"verseRangeInvalid": "Verse start must be less than or equal to verse end."
+				},
+				"remove": {
+					"action": "Remove from plan",
+					"confirmTitle": "Remove book from plan",
+					"confirmMessage": "Are you sure you want to remove this book from the plan?",
+					"confirmAction": "Remove"
+				}
+			}
+		},
+		"progress": {
+			"title": "Plan progress",
+			"subtitle": "Track status and reading activity for every book.",
+			"backToBuilder": "Back to builder",
+			"overall": "Overall progress",
+			"completedOfTotal": "{completed} of {total} completed",
+			"notStarted": "Not started",
+			"inProgress": "In progress",
+			"completed": "Completed",
+			"chaptersLogged": "Total chapters logged",
+			"logEntries": "{count, plural, one {# log} other {# logs}}",
+			"statusLabel": "Status: {status}",
+			"startedAt": "Started {date}",
+			"completedAt": "Completed {date}",
+			"latestLog": "Most recent log"
+		}
 	}
 }
