@@ -41,6 +41,7 @@ export const user = pgTable("user", {
 	onboardingComplete: boolean("onboardingComplete"),
 	paymentsCustomerId: text("paymentsCustomerId"),
 	locale: text("locale"),
+	lastActiveOrganizationId: text("lastActiveOrganizationId"),
 });
 
 export const session = pgTable(

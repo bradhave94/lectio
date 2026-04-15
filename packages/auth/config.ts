@@ -2,8 +2,8 @@ import type { AuthConfig } from "./types";
 
 export const config = {
 	enableSignup: true,
-	enableMagicLink: true,
-	enableSocialLogin: true,
+	enableMagicLink: false,
+	enableSocialLogin: false,
 	enablePasskeys: true,
 	enablePasswordLogin: true,
 	enableTwoFactor: true,
@@ -12,7 +12,7 @@ export const config = {
 		enableOnboarding: true,
 	},
 	organizations: {
-		enable: true,
+		enable: false,
 		hideOrganization: false,
 		enableUsersToCreateOrganizations: true,
 		requireOrganization: false,

@@ -77,12 +77,6 @@ export const auth = betterAuth({
 			},
 		},
 	},
-	account: {
-		accountLinking: {
-			enabled: true,
-			trustedProviders: ["google", "github"],
-		},
-	},
 	hooks: {
 		after: createAuthMiddleware(async (ctx) => {
 			if (ctx.path.startsWith("/organization/accept-invitation")) {
@@ -207,18 +201,6 @@ export const auth = betterAuth({
 				},
 				locale,
 			});
-		},
-	},
-	socialProviders: {
-		google: {
-			clientId: process.env.GOOGLE_CLIENT_ID as string,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-			scope: ["email", "profile"],
-		},
-		github: {
-			clientId: process.env.GITHUB_CLIENT_ID as string,
-			clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-			scope: ["user:email"],
 		},
 	},
 	plugins: [

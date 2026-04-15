@@ -29,7 +29,7 @@ async function main() {
 			type: "text",
 			placeholder: "leave blank to auto-generate",
 		})
-	).trim();
+	)?.trim() ?? "";
 
 	const authContext = await auth.$context;
 	const adminPassword = passwordInput || nanoid(16);
