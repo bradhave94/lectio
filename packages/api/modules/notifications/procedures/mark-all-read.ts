@@ -10,6 +10,6 @@ export const markAllNotificationsRead = protectedProcedure
 		summary: "Mark all notifications as read",
 	})
 	.handler(async ({ context: { user } }) => {
-		const result = await markAllNotificationsAsReadForUser(user.id);
-		return { count: result.count };
+		await markAllNotificationsAsReadForUser(user.id);
+		return { success: true };
 	});

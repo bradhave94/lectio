@@ -16,6 +16,6 @@ export const markNotificationsRead = protectedProcedure
 		}),
 	)
 	.handler(async ({ input: { ids }, context: { user } }) => {
-		const result = await markNotificationsAsRead(user.id, ids);
-		return { count: result.count };
+		await markNotificationsAsRead(user.id, ids);
+		return { success: true };
 	});
