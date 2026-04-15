@@ -10,7 +10,7 @@ import { verifyOrganizationMembership } from "./membership";
 
 describe("verifyOrganizationMembership", () => {
 	it("returns null when membership does not exist", async () => {
-		vi.mocked(getOrganizationMembership).mockResolvedValueOnce(null);
+		vi.mocked(getOrganizationMembership).mockResolvedValueOnce(undefined);
 
 		const result = await verifyOrganizationMembership("org-1", "user-1");
 
