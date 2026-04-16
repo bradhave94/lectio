@@ -1,15 +1,19 @@
 import { createId as cuid } from "@paralleldrive/cuid2";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
 	boolean,
+	check,
+	date,
 	index,
 	integer,
 	jsonb,
 	pgEnum,
 	pgTable,
+	serial,
 	text,
 	timestamp,
 	uniqueIndex,
+	uuid,
 } from "drizzle-orm/pg-core";
 
 export const purchaseTypeEnum = pgEnum("PurchaseType", ["SUBSCRIPTION", "ONE_TIME"]);
@@ -17,6 +21,17 @@ export const purchaseTypeEnum = pgEnum("PurchaseType", ["SUBSCRIPTION", "ONE_TIM
 export const notificationTypeEnum = pgEnum("NotificationType", ["WELCOME", "APP_UPDATE"]);
 
 export const notificationTargetEnum = pgEnum("NotificationTarget", ["IN_APP", "EMAIL"]);
+
+export const testamentValues = ["OT", "NT"] as const;
+export const planBookResourceTypeValues = [
+	"reading_plan",
+	"video",
+	"podcast",
+	"book",
+	"article",
+	"other",
+] as const;
+export const planBookStatusValues = ["not_started", "in_progress", "completed"] as const;
 
 export const user = pgTable("user", {
 	id: text("id")
@@ -279,6 +294,116 @@ export const userNotificationPreference = pgTable(
 	],
 );
 
+export const books = pgTable(
+	"books",
+	{
+		id: serial("id").primaryKey(),
+		usfmCode: text("usfm_code").notNull(),
+		name: text("name").notNull(),
+		testament: text("testament").notNull(),
+		canonOrder: integer("canon_order").notNull(),
+		chapterCount: integer("chapter_count").notNull(),
+	},
+	(table) => [
+		uniqueIndex("books_usfm_code_uidx").on(table.usfmCode),
+		uniqueIndex("books_canon_order_uidx").on(table.canonOrder),
+		check("books_testament_check", sql`${table.testament} IN ('OT', 'NT')`),
+	],
+);
+
+export const bookChapters = pgTable(
+	"book_chapters",
+	{
+		id: serial("id").primaryKey(),
+		bookId: integer("book_id")
+			.notNull()
+			.references(() => books.id, { onDelete: "cascade" }),
+		chapterNum: integer("chapter_num").notNull(),
+		verseCount: integer("verse_count").notNull(),
+	},
+	(table) => [
+		uniqueIndex("book_chapters_book_chapter_uidx").on(table.bookId, table.chapterNum),
+		index("book_chapters_book_id_idx").on(table.bookId),
+	],
+);
+
+export const plans = pgTable(
+	"plans",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		title: text("title").notNull(),
+		description: text("description"),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [index("plans_user_id_idx").on(table.userId)],
+);
+
+export const planBooks = pgTable(
+	"plan_books",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		planId: uuid("plan_id")
+			.notNull()
+			.references(() => plans.id, { onDelete: "cascade" }),
+		bookId: integer("book_id")
+			.notNull()
+			.references(() => books.id),
+		orderIndex: integer("order_index").notNull(),
+		resourceUrl: text("resource_url"),
+		resourceLabel: text("resource_label"),
+		resourceType: text("resource_type"),
+		notes: text("notes"),
+		status: text("status").notNull().default("not_started"),
+		startedAt: timestamp("started_at", { withTimezone: true }),
+		completedAt: timestamp("completed_at", { withTimezone: true }),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("plan_books_plan_book_uidx").on(table.planId, table.bookId),
+		index("plan_books_plan_order_idx").on(table.planId, table.orderIndex),
+		index("plan_books_plan_id_idx").on(table.planId),
+		index("plan_books_book_id_idx").on(table.bookId),
+		check(
+			"plan_books_resource_type_check",
+			sql`${table.resourceType} IS NULL OR ${table.resourceType} IN ('reading_plan', 'video', 'podcast', 'book', 'article', 'other')`,
+		),
+		check(
+			"plan_books_status_check",
+			sql`${table.status} IN ('not_started', 'in_progress', 'completed')`,
+		),
+	],
+);
+
+export const readingLogs = pgTable(
+	"reading_logs",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		planBookId: uuid("plan_book_id")
+			.notNull()
+			.references(() => planBooks.id, { onDelete: "cascade" }),
+		chapterStart: integer("chapter_start").notNull(),
+		chapterEnd: integer("chapter_end").notNull(),
+		verseStart: integer("verse_start"),
+		verseEnd: integer("verse_end"),
+		note: text("note"),
+		loggedAt: date("logged_at").notNull().default(sql`CURRENT_DATE`),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		index("reading_logs_plan_book_idx").on(table.planBookId),
+		index("reading_logs_plan_book_logged_at_idx").on(table.planBookId, table.loggedAt),
+		check("reading_logs_chapter_range_check", sql`${table.chapterEnd} >= ${table.chapterStart}`),
+		check(
+			"reading_logs_verse_range_check",
+			sql`(${table.verseStart} IS NULL AND ${table.verseEnd} IS NULL) OR (${table.verseStart} IS NOT NULL AND ${table.verseEnd} IS NOT NULL AND ${table.verseEnd} >= ${table.verseStart})`,
+		),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -289,6 +414,7 @@ export const userRelations = relations(user, ({ many }) => ({
 	purchases: many(purchase),
 	notifications: many(notification),
 	notificationPreferences: many(userNotificationPreference),
+	plans: many(plans),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -375,3 +501,42 @@ export const userNotificationPreferenceRelations = relations(
 		}),
 	}),
 );
+
+export const booksRelations = relations(books, ({ many }) => ({
+	chapters: many(bookChapters),
+	planBooks: many(planBooks),
+}));
+
+export const bookChaptersRelations = relations(bookChapters, ({ one }) => ({
+	book: one(books, {
+		fields: [bookChapters.bookId],
+		references: [books.id],
+	}),
+}));
+
+export const plansRelations = relations(plans, ({ one, many }) => ({
+	user: one(user, {
+		fields: [plans.userId],
+		references: [user.id],
+	}),
+	planBooks: many(planBooks),
+}));
+
+export const planBooksRelations = relations(planBooks, ({ one, many }) => ({
+	plan: one(plans, {
+		fields: [planBooks.planId],
+		references: [plans.id],
+	}),
+	book: one(books, {
+		fields: [planBooks.bookId],
+		references: [books.id],
+	}),
+	readingLogs: many(readingLogs),
+}));
+
+export const readingLogsRelations = relations(readingLogs, ({ one }) => ({
+	planBook: one(planBooks, {
+		fields: [readingLogs.planBookId],
+		references: [planBooks.id],
+	}),
+}));

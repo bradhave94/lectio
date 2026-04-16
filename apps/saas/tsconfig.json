@@ -11,6 +11,7 @@
 			"@i18n/*": ["./modules/i18n/*"],
 			"@admin/*": ["./modules/admin/*"],
 			"@ai/*": ["./modules/ai/*"],
+			"@lectio/*": ["./modules/lectio/*"],
 			"@onboarding/*": ["./modules/onboarding/*"],
 			"@shared/*": ["./modules/shared/*"]
 		}

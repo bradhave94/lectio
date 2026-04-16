@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import {
 	account,
+	bookChapters,
+	books,
 	invitation,
 	member,
 	notification,
@@ -10,7 +12,10 @@ import {
 	notificationTypeEnum,
 	organization,
 	passkey,
+	planBooks,
+	plans,
 	purchase,
+	readingLogs,
 	session,
 	user,
 	userNotificationPreference,
@@ -54,6 +59,28 @@ export const UserNotificationPreferenceUpdateSchema = createUpdateSchema(
 	},
 );
 export type UserNotificationPreference = typeof userNotificationPreference.$inferSelect;
+export const BookSchema = createSelectSchema(books);
+export const BookInsertSchema = createInsertSchema(books);
+export const BookChapterSchema = createSelectSchema(bookChapters);
+export const BookChapterInsertSchema = createInsertSchema(bookChapters);
+export const PlanSchema = createSelectSchema(plans);
+export const PlanInsertSchema = createInsertSchema(plans);
+export const PlanUpdateSchema = createUpdateSchema(plans, {
+	id: z.uuid(),
+});
+export type Plan = typeof plans.$inferSelect;
+export const PlanBookSchema = createSelectSchema(planBooks);
+export const PlanBookInsertSchema = createInsertSchema(planBooks);
+export const PlanBookUpdateSchema = createUpdateSchema(planBooks, {
+	id: z.uuid(),
+});
+export type PlanBook = typeof planBooks.$inferSelect;
+export const ReadingLogSchema = createSelectSchema(readingLogs);
+export const ReadingLogInsertSchema = createInsertSchema(readingLogs);
+export const ReadingLogUpdateSchema = createUpdateSchema(readingLogs, {
+	id: z.uuid(),
+});
+export type ReadingLog = typeof readingLogs.$inferSelect;
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
 

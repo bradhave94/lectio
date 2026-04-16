@@ -15,6 +15,13 @@
       "when": 1776266101673,
       "tag": "0001_funny_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776272846325,
+      "tag": "0002_boring_bullseye",
+      "breakpoints": true
     }
   ]
 }

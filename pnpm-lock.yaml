@@ -6,117 +6,9 @@ settings:
 
 catalogs:
   default:
-    '@ai-sdk/anthropic':
-      specifier: ^3.0.69
-      version: 3.0.69
-    '@ai-sdk/openai':
-      specifier: ^3.0.52
-      version: 3.0.52
-    '@ai-sdk/react':
-      specifier: ^3.0.161
-      version: 3.0.161
-    '@aws-sdk/client-s3':
-      specifier: 3.437.0
-      version: 3.437.0
-    '@aws-sdk/s3-request-presigner':
-      specifier: 3.437.0
-      version: 3.437.0
-    '@hookform/resolvers':
-      specifier: 5.2.2
-      version: 5.2.2
-    '@mdx-js/mdx':
-      specifier: ^3.1.1
-      version: 3.1.1
-    '@next/third-parties':
-      specifier: 16.2.3
-      version: 16.2.3
-    '@orpc/client':
-      specifier: 1.13.14
-      version: 1.13.14
-    '@orpc/json-schema':
-      specifier: 1.13.14
-      version: 1.13.14
-    '@orpc/openapi':
-      specifier: 1.13.14
-      version: 1.13.14
-    '@orpc/server':
-      specifier: 1.13.14
-      version: 1.13.14
-    '@orpc/tanstack-query':
-      specifier: 1.13.14
-      version: 1.13.14
-    '@orpc/zod':
-      specifier: 1.13.14
-      version: 1.13.14
-    '@playwright/test':
-      specifier: ^1.59.1
-      version: 1.59.1
-    '@prisma/nextjs-monorepo-workaround-plugin':
-      specifier: ^7.7.0
-      version: 7.7.0
-    '@shikijs/rehype':
-      specifier: ^4.0.2
-      version: 4.0.2
-    '@sindresorhus/slugify':
-      specifier: ^3.0.0
-      version: 3.0.0
-    '@tailwindcss/postcss':
-      specifier: ^4.2.2
-      version: 4.2.2
-    '@types/js-cookie':
-      specifier: ^3.0.4
-      version: 3.0.6
-    '@types/mdx':
-      specifier: ^2.0.13
-      version: 2.0.13
     '@types/node':
       specifier: 25.6.0
       version: 25.6.0
-    '@types/nodemailer':
-      specifier: ^8.0.0
-      version: 8.0.0
-    '@types/nprogress':
-      specifier: ^0.2.3
-      version: 0.2.3
-    '@types/react':
-      specifier: 19.2.14
-      version: 19.2.14
-    '@types/react-dom':
-      specifier: 19.2.3
-      version: 19.2.3
-    '@types/uuid':
-      specifier: ^11.0.0
-      version: 11.0.0
-    '@vitest/coverage-v8':
-      specifier: ^4.1.4
-      version: 4.1.4
-    ai:
-      specifier: ^6.0.159
-      version: 6.0.159
-    autoprefixer:
-      specifier: 10.5.0
-      version: 10.5.0
-    better-auth:
-      specifier: 1.6.3
-      version: 1.6.3
-    boring-avatars:
-      specifier: ^2.0.4
-      version: 2.0.4
-    class-variance-authority:
-      specifier: ^0.7.1
-      version: 0.7.1
-    clsx:
-      specifier: ^2.1.1
-      version: 2.1.1
-    cookie:
-      specifier: ^1.1.1
-      version: 1.1.1
-    cropperjs:
-      specifier: 1.6.2
-      version: 1.6.2
-    date-fns:
-      specifier: ^4.1.0
-      version: 4.1.0
     dotenv:
       specifier: ^17.4.2
       version: 17.4.2
@@ -132,132 +24,12 @@ catalogs:
     drizzle-zod:
       specifier: 0.8.3
       version: 0.8.3
-    es-toolkit:
-      specifier: ^1.45.1
-      version: 1.45.1
-    hono:
-      specifier: ^4.12.12
-      version: 4.12.12
-    input-otp:
-      specifier: ^1.4.2
-      version: 1.4.2
-    js-cookie:
-      specifier: ^3.0.5
-      version: 3.0.5
-    lucide-react:
-      specifier: ^1.8.0
-      version: 1.8.0
-    mdx:
-      specifier: ^0.3.1
-      version: 0.3.1
-    mdx-bundler:
-      specifier: ^10.1.1
-      version: 10.1.1
-    nanoid:
-      specifier: ^5.1.7
-      version: 5.1.7
-    next-intl:
-      specifier: 4.9.1
-      version: 4.9.1
-    next-themes:
-      specifier: ^0.4.6
-      version: 0.4.6
-    nprogress:
-      specifier: ^0.2.0
-      version: 0.2.0
-    nuqs:
-      specifier: ^2.8.9
-      version: 2.8.9
-    openai:
-      specifier: ^6.34.0
-      version: 6.34.0
-    oslo:
-      specifier: ^1.2.1
-      version: 1.2.1
-    oxfmt:
-      specifier: ^0.45.0
-      version: 0.45.0
-    oxlint:
-      specifier: ^1.60.0
-      version: 1.60.0
     pg:
       specifier: ^8.20.0
       version: 8.20.0
-    postcss:
-      specifier: 8.5.9
-      version: 8.5.9
-    prettier:
-      specifier: 3.8.2
-      version: 3.8.2
-    radix-ui:
-      specifier: ^1.4.3
-      version: 1.4.3
-    react:
-      specifier: 19.2.5
-      version: 19.2.5
-    react-cropper:
-      specifier: ^2.3.3
-      version: 2.3.3
-    react-dom:
-      specifier: 19.2.5
-      version: 19.2.5
-    react-dropzone:
-      specifier: ^15.0.0
-      version: 15.0.0
-    react-hook-form:
-      specifier: ^7.72.1
-      version: 7.72.1
-    react-qr-code:
-      specifier: ^2.0.17
-      version: 2.0.18
-    recharts:
-      specifier: ^3.8.1
-      version: 3.8.1
-    server-only:
-      specifier: ^0.0.1
-      version: 0.0.1
-    sharp:
-      specifier: ^0.34.5
-      version: 0.34.5
-    slugify:
-      specifier: ^1.6.9
-      version: 1.6.9
-    sonner:
-      specifier: ^2.0.7
-      version: 2.0.7
-    start-server-and-test:
-      specifier: ^3.0.2
-      version: 3.0.2
-    streamdown:
-      specifier: ^2.5.0
-      version: 2.5.0
-    tailwind-merge:
-      specifier: ^3.5.0
-      version: 3.5.0
-    tailwindcss:
-      specifier: 4.2.2
-      version: 4.2.2
     tsx:
       specifier: ^4.20.6
       version: 4.21.0
-    typescript:
-      specifier: 6.0.2
-      version: 6.0.2
-    ufo:
-      specifier: ^1.6.3
-      version: 1.6.3
-    use-intl:
-      specifier: ^4.9.1
-      version: 4.9.1
-    usehooks-ts:
-      specifier: ^3.1.1
-      version: 3.1.1
-    uuid:
-      specifier: ^13.0.0
-      version: 13.0.0
-    vitest:
-      specifier: ^4.1.4
-      version: 4.1.4
     zod:
       specifier: ^4.3.6
       version: 4.3.6
@@ -573,6 +345,15 @@ importers:
       '@bprogress/next':
         specifier: ^3.2.12
         version: 3.2.12(next@16.2.3(@opentelemetry/api@1.9.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@dnd-kit/core':
+        specifier: ^6.3.1
+        version: 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@dnd-kit/sortable':
+        specifier: ^10.0.0
+        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)
+      '@dnd-kit/utilities':
+        specifier: ^3.2.2
+        version: 3.2.2(react@19.2.5)
       '@hookform/resolvers':
         specifier: 'catalog:'
         version: 5.2.2(react-hook-form@7.72.1(react@19.2.5))
@@ -1010,6 +791,9 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.31.10
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
 
   packages/i18n:
     dependencies:
@@ -1255,6 +1039,9 @@ importers:
       '@repo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@electric-sql/pglite@0.4.1)(@opentelemetry/api@1.9.0)(@prisma/client@7.7.0(prisma@7.7.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(magicast@0.3.5)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(typescript@6.0.2))(@types/pg@8.20.0)(kysely@0.28.14)(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.7)(prisma@7.7.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(magicast@0.3.5)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
@@ -1721,6 +1508,28 @@ packages:
     peerDependencies:
       '@content-collections/core': 0.x
       next: ^12 || ^13 || ^14 || ^15 || ^16
+
+  '@dnd-kit/accessibility@3.1.1':
+    resolution: {integrity: sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw==}
+    peerDependencies:
+      react: '>=16.8.0'
+
+  '@dnd-kit/core@6.3.1':
+    resolution: {integrity: sha512-xkGBRQQab4RLwgXxoqETICr6S5JlogafbhNsidmrkVv2YRs5MLwpjoF2qpiGjQt8S9AoxtIV603s0GIUpY5eYQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@dnd-kit/sortable@10.0.0':
+    resolution: {integrity: sha512-+xqhmIIzvAYMGfBYYnbKuNicfSsk4RksY2XdmJhT+HAC01nix6fHCztU68jooFiMUB01Ky3F0FyOvhG/BZrWkg==}
+    peerDependencies:
+      '@dnd-kit/core': ^6.3.0
+      react: '>=16.8.0'
+
+  '@dnd-kit/utilities@3.2.2':
+    resolution: {integrity: sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg==}
+    peerDependencies:
+      react: '>=16.8.0'
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -9527,6 +9336,31 @@ snapshots:
       '@content-collections/integrations': 0.5.0(@content-collections/core@0.14.3(typescript@6.0.2))
       next: 16.2.3(@opentelemetry/api@1.9.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
 
+  '@dnd-kit/accessibility@3.1.1(react@19.2.5)':
+    dependencies:
+      react: 19.2.5
+      tslib: 2.8.1
+
+  '@dnd-kit/core@6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
+    dependencies:
+      '@dnd-kit/accessibility': 3.1.1(react@19.2.5)
+      '@dnd-kit/utilities': 3.2.2(react@19.2.5)
+      react: 19.2.5
+      react-dom: 19.2.5(react@19.2.5)
+      tslib: 2.8.1
+
+  '@dnd-kit/sortable@10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)':
+    dependencies:
+      '@dnd-kit/core': 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@dnd-kit/utilities': 3.2.2(react@19.2.5)
+      react: 19.2.5
+      tslib: 2.8.1
+
+  '@dnd-kit/utilities@3.2.2(react@19.2.5)':
+    dependencies:
+      react: 19.2.5
+      tslib: 2.8.1
+
   '@drizzle-team/brocli@0.10.2': {}
 
   '@electric-sql/pglite-socket@0.1.1(@electric-sql/pglite@0.4.1)':
@@ -16369,7 +16203,7 @@ snapshots:
 
   tsx@4.21.0:
     dependencies:
-      esbuild: 0.27.3
+      esbuild: 0.27.7
       get-tsconfig: 4.13.0
     optionalDependencies:
       fsevents: 2.3.3

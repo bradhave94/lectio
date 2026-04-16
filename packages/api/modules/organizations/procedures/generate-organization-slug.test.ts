@@ -28,7 +28,7 @@ describe("generateOrganizationSlug", () => {
 	});
 
 	it("returns a slugified version of the name when slug is available", async () => {
-		vi.mocked(getOrganizationBySlug).mockResolvedValueOnce(null);
+		vi.mocked(getOrganizationBySlug).mockResolvedValueOnce(undefined);
 
 		const result = await call(generateOrganizationSlug, { name: "My Test Organization" }, ctx);
 
@@ -39,7 +39,7 @@ describe("generateOrganizationSlug", () => {
 		const existingOrg = { id: "org-1", name: "Existing Org" };
 		vi.mocked(getOrganizationBySlug)
 			.mockResolvedValueOnce(existingOrg as never)
-			.mockResolvedValueOnce(null);
+			.mockResolvedValueOnce(undefined);
 
 		const result = await call(generateOrganizationSlug, { name: "Existing Org" }, ctx);
 
