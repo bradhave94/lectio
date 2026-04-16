@@ -638,6 +638,24 @@
 			"article": "Article",
 			"other": "Other"
 		},
+		"read": {
+			"titleFallback": "Reading plan",
+			"backToPlans": "Back to my plans",
+			"viewProgress": "Progress",
+			"editPlan": "Edit plan",
+			"overallProgress": "Overall progress",
+			"booksCompleted": "{completed} of {total} books completed",
+			"suggestedLabel": "Suggested next",
+			"logReading": "Log reading",
+			"lastLogged": "Last: {passage} · {date}",
+			"noLogsYet": "No reading logged for this book yet.",
+			"otherBooks": "All books",
+			"recentActivity": "Recent activity",
+			"recentEmpty": "No reading entries yet. Pick a book above to log your first session.",
+			"emptyPlanTitle": "No books in this plan",
+			"emptyPlanDescription": "Add books in the plan editor to start logging your reading here.",
+			"addBooks": "Add books"
+		},
 		"dashboard": {
 			"title": "My plans",
 			"subtitle": "Build and track your custom Bible reading journey.",
@@ -675,6 +693,7 @@
 		"builder": {
 			"titleFallback": "Plan builder",
 			"backToPlans": "Back to plans",
+			"backToReading": "Back to reading",
 			"viewProgress": "View progress",
 			"plan": {
 				"titleLabel": "Plan title",
@@ -708,6 +727,7 @@
 			},
 			"drawer": {
 				"subtitle": "Book #{position} in your plan",
+				"logVariantSubtitle": "Log what you read for this book.",
 				"save": "Save changes",
 				"readOnBibleCom": "Read on Bible.com",
 				"resource": {
@@ -757,6 +777,7 @@
 			"title": "Plan progress",
 			"subtitle": "Track status and reading activity for every book.",
 			"backToBuilder": "Back to builder",
+			"backToPlan": "Back to plan",
 			"overall": "Overall progress",
 			"completedOfTotal": "{completed} of {total} completed",
 			"notStarted": "Not started",
@@ -764,7 +785,7 @@
 			"completed": "Completed",
 			"chaptersLogged": "Total chapters logged",
 			"logEntries": "{count, plural, one {# log} other {# logs}}",
-			"empty": "No books in this plan yet. Add some from the builder to start tracking progress.",
+			"empty": "No books in this plan yet. Add some from Edit plan to start tracking progress.",
 			"statusLabel": "Status: {status}",
 			"startedAt": "Started {date}",
 			"completedAt": "Completed {date}",

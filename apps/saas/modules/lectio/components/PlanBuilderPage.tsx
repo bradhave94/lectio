@@ -19,11 +19,11 @@ export async function PlanBuilderPage({ planId, initialBuilderData }: PlanBuilde
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="space-y-2">
 					<Link
-						href="/"
+						href={`/plans/${planId}`}
 						className="inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
 					>
 						<ArrowLeftIcon className="mr-1 size-4" />
-						{t("builder.backToPlans")}
+						{t("builder.backToReading")}
 					</Link>
 					<PageHeader
 						title={initialBuilderData.plan.title || t("builder.titleFallback")}

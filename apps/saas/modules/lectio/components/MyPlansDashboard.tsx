@@ -15,6 +15,7 @@ import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvid
 import { CalendarClockIcon, LibraryBigIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface MyPlansDashboardProps {
@@ -37,6 +38,7 @@ export function MyPlansDashboard({
 	const t = useTranslations("lectio");
 	const format = useFormatter();
 	const { confirm } = useConfirmationAlert();
+	const router = useRouter();
 	const plansQuery = useLectioPlansQuery(initialPlans);
 	const createPlanMutation = useCreatePlanMutation();
 	const deletePlanMutation = useDeletePlanMutation();
@@ -65,9 +67,10 @@ export function MyPlansDashboard({
 				isSubmitting={createPlanMutation.isPending}
 				onSubmit={async (payload) => {
 					try {
-						await createPlanMutation.mutateAsync(payload);
+						const created = await createPlanMutation.mutateAsync(payload);
 						toastSuccess(t("toast.saved"));
 						setIsNewPlanOpen(false);
+						router.push(`/plans/${created.id}/edit`);
 					} catch {
 						toastError(t("toast.saveError"));
 					}
