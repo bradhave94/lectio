@@ -4,7 +4,7 @@ import { bookChapters, books, db, testamentValues } from "@repo/database";
 import { logger } from "@repo/logs";
 
 const YOUVERSION_API_BASE_URL = "https://api.youversion.com/v1";
-const DEFAULT_BIBLE_ID = 3034;
+const DEFAULT_BIBLE_ID = 111;
 const REQUEST_DELAY_MS = 120;
 const MAX_PAGE_COUNT = 100;
 

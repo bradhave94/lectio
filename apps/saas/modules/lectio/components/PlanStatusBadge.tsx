@@ -9,7 +9,7 @@ interface PlanStatusBadgeProps {
 }
 
 export function PlanStatusBadge({ status }: PlanStatusBadgeProps) {
-	const t = useTranslations();
+	const t = useTranslations("lectio");
 
 	if (status === "completed") {
 		return <Badge status="success">{t(STATUS_LABELS.completed)}</Badge>;

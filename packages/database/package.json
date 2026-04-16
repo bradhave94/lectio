@@ -7,7 +7,7 @@
 		"clean": "git clean -xdf .cache .turbo dist node_modules",
 		"generate": "dotenv -c -e ../../.env -- drizzle-kit generate --config ./drizzle/drizzle.config.ts",
 		"push": "dotenv -c -e ../../.env -- drizzle-kit push --config ./drizzle/drizzle.config.ts",
-		"migrate": "dotenv -c -e ../../.env -- drizzle-kit migrate --config ./drizzle/drizzle.config.ts",
+		"migrate": "dotenv -c -e ../../.env -- tsx ./scripts/migrate.ts",
 		"studio": "dotenv -c -e ../../.env -- drizzle-kit studio --config ./drizzle/drizzle.config.ts",
 		"type-check": "tsc --noEmit"
 	},
@@ -23,6 +23,7 @@
 		"@types/node": "catalog:",
 		"dotenv": "catalog:",
 		"dotenv-cli": "catalog:",
-		"drizzle-kit": "catalog:"
+		"drizzle-kit": "catalog:",
+		"tsx": "catalog:"
 	}
 }

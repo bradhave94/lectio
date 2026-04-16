@@ -50,12 +50,12 @@ export function MyPlansDashboard({
 
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
-					<h1 className="text-2xl font-semibold">{t("lectio.dashboard.title")}</h1>
-					<p className="text-sm text-muted-foreground">{t("lectio.dashboard.subtitle")}</p>
+					<h1 className="text-2xl font-semibold">{t("dashboard.title")}</h1>
+					<p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
 				</div>
 				<Button onClick={() => setIsNewPlanOpen(true)}>
 					<PlusIcon className="mr-1.5 size-4" />
-					{t("lectio.dashboard.newPlan")}
+					{t("dashboard.newPlan")}
 				</Button>
 			</div>
 
@@ -66,10 +66,10 @@ export function MyPlansDashboard({
 				onSubmit={async (payload) => {
 					try {
 						await createPlanMutation.mutateAsync(payload);
-						toastSuccess(t("lectio.toast.saved"));
+						toastSuccess(t("toast.saved"));
 						setIsNewPlanOpen(false);
 					} catch {
-						toastError(t("lectio.toast.saveError"));
+						toastError(t("toast.saveError"));
 					}
 				}}
 			/>
@@ -81,14 +81,14 @@ export function MyPlansDashboard({
 				</div>
 			) : plans.length === 0 ? (
 				<Card className="p-8 text-center">
-					<p className="text-lg font-semibold">{t("lectio.dashboard.emptyTitle")}</p>
+					<p className="text-lg font-semibold">{t("dashboard.emptyTitle")}</p>
 					<p className="mt-1 text-sm text-muted-foreground">
-						{t("lectio.dashboard.emptyDescription")}
+						{t("dashboard.emptyDescription")}
 					</p>
 					<div className="mt-4">
 						<Button type="button" onClick={() => setIsNewPlanOpen(true)}>
 							<PlusIcon className="mr-1.5 size-4" />
-							{t("lectio.dashboard.newPlan")}
+							{t("dashboard.newPlan")}
 						</Button>
 					</div>
 				</Card>
@@ -102,20 +102,20 @@ export function MyPlansDashboard({
 									<div>
 										<h2 className="text-xl font-semibold">{plan.title}</h2>
 										<p className="mt-1 text-sm text-muted-foreground">
-											{plan.description || t("lectio.dashboard.noDescription")}
+											{plan.description || t("dashboard.noDescription")}
 										</p>
 
 										<div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
 											<p className="inline-flex items-center gap-1">
 												<LibraryBigIcon className="size-3.5" />
-												{t("lectio.dashboard.card.booksProgress", {
+												{t("dashboard.card.booksProgress", {
 													completed: plan.completedBooks,
 													total: plan.totalBooks,
 												})}
 											</p>
 											<p className="inline-flex items-center justify-end gap-1">
 												<CalendarClockIcon className="size-3.5" />
-												{t("lectio.dashboard.card.updatedAt", {
+												{t("dashboard.card.updatedAt", {
 													date: format.dateTime(new Date(plan.updatedAt), {
 														dateStyle: "medium",
 													}),
@@ -132,12 +132,12 @@ export function MyPlansDashboard({
 										<div className="flex gap-2">
 											<Button asChild size="sm">
 												<Link href={`/plans/${plan.id}`}>
-													{t("lectio.dashboard.card.openPlan")}
+													{t("dashboard.card.openPlan")}
 												</Link>
 											</Button>
 											<Button asChild size="sm" variant="outline">
 												<Link href={`/plans/${plan.id}/progress`}>
-													{t("lectio.dashboard.card.viewProgress")}
+													{t("dashboard.card.viewProgress")}
 												</Link>
 											</Button>
 										</div>
@@ -148,18 +148,18 @@ export function MyPlansDashboard({
 											disabled={deletePlanMutation.isPending}
 											onClick={() =>
 												confirm({
-													title: t("lectio.dashboard.delete.title"),
-													message: t("lectio.dashboard.delete.message"),
-													confirmLabel: t("lectio.dashboard.delete.confirm"),
+													title: t("dashboard.delete.title"),
+													message: t("dashboard.delete.message"),
+													confirmLabel: t("dashboard.delete.confirm"),
 													destructive: true,
 													onConfirm: async () => {
 														try {
 															await deletePlanMutation.mutateAsync({
 																planId: plan.id,
 															});
-															toastSuccess(t("lectio.toast.saved"));
+															toastSuccess(t("toast.saved"));
 														} catch {
-															toastError(t("lectio.toast.saveError"));
+															toastError(t("toast.saveError"));
 														}
 													},
 												})

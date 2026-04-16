@@ -16,22 +16,24 @@ export const TESTAMENT_OPTIONS = [
 ] as const;
 export type TestamentOption = (typeof TESTAMENT_OPTIONS)[number]["value"];
 
+// Translation keys below are relative to the `lectio` namespace, matching the
+// `useTranslations("lectio")` scope used by all lectio components.
 export const RESOURCE_TYPE_LABELS = {
-	reading_plan: "lectio.resourceTypes.reading_plan",
-	video: "lectio.resourceTypes.video",
-	podcast: "lectio.resourceTypes.podcast",
-	book: "lectio.resourceTypes.book",
-	article: "lectio.resourceTypes.article",
-	other: "lectio.resourceTypes.other",
+	reading_plan: "resourceTypes.reading_plan",
+	video: "resourceTypes.video",
+	podcast: "resourceTypes.podcast",
+	book: "resourceTypes.book",
+	article: "resourceTypes.article",
+	other: "resourceTypes.other",
 } as const;
 export const RESOURCE_TYPE_OPTIONS = Object.keys(
 	RESOURCE_TYPE_LABELS,
 ) as Array<keyof typeof RESOURCE_TYPE_LABELS>;
 
 export const STATUS_LABELS = {
-	not_started: "lectio.status.not_started",
-	in_progress: "lectio.status.in_progress",
-	completed: "lectio.status.completed",
+	not_started: "status.not_started",
+	in_progress: "status.in_progress",
+	completed: "status.completed",
 } as const;
 
 export const STATUS_ORDER = ["not_started", "in_progress", "completed"] as const;
