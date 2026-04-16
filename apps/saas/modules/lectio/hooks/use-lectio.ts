@@ -7,11 +7,23 @@ import { useTranslations } from "next-intl";
 
 export type PlansListResponse = Awaited<ReturnType<typeof orpc.lectio.plans.list.call>>;
 export type BuilderResponse = Awaited<ReturnType<typeof orpc.lectio.plans.builder.call>>;
-export type ProgressResponse = Awaited<ReturnType<typeof orpc.lectio.plans.progress.call>>;
 export type ReadingLogsResponse = Awaited<ReturnType<typeof orpc.lectio.readingLogs.list.call>>;
+export type RecentLogsResponse = Awaited<ReturnType<typeof orpc.lectio.readingLogs.recent.call>>;
+export type PlanRecentLogsResponse = Awaited<
+	ReturnType<typeof orpc.lectio.plans.recentLogs.call>
+>;
 export type VerseOfDayResponse = Awaited<ReturnType<typeof orpc.lectio.verseOfDay.get.call>>;
 export type BooksResponse = Awaited<ReturnType<typeof orpc.lectio.books.list.call>>;
 export type PlanBookRow = BuilderResponse["planBooks"][number];
+
+const DEFAULT_PLANS_LIST_INPUT = { includeArchived: false } as const;
+const DEFAULT_PLANS_LIST_INPUT_INCLUDE = { includeArchived: true } as const;
+
+function plansListKey(includeArchived: boolean) {
+	return orpc.lectio.plans.list.queryKey({
+		input: includeArchived ? DEFAULT_PLANS_LIST_INPUT_INCLUDE : DEFAULT_PLANS_LIST_INPUT,
+	});
+}
 
 function updateBuilderCache(
 	current: BuilderResponse | undefined,
@@ -34,12 +46,10 @@ function sortPlanBooks(rows: PlanBookRow[]) {
 		);
 }
 
-export function useLectioPlansQuery(initialData?: PlansListResponse) {
+export function useLectioPlansQuery(initialData?: PlansListResponse, includeArchived = false) {
 	return useQuery({
 		...orpc.lectio.plans.list.queryOptions({
-			input: {
-				includeArchived: false,
-			},
+			input: includeArchived ? DEFAULT_PLANS_LIST_INPUT_INCLUDE : DEFAULT_PLANS_LIST_INPUT,
 		}),
 		initialData,
 	});
@@ -54,19 +64,39 @@ export function useLectioVerseOfDayQuery(initialData?: VerseOfDayResponse) {
 	});
 }
 
+export function useUserRecentReadingLogsQuery(
+	initialData?: RecentLogsResponse,
+	limit = 50,
+) {
+	return useQuery({
+		...orpc.lectio.readingLogs.recent.queryOptions({
+			input: { limit },
+		}),
+		initialData,
+	});
+}
+
+export function usePlanRecentReadingLogsQuery(
+	planId: string,
+	initialData?: PlanRecentLogsResponse,
+	limit = 50,
+) {
+	return useQuery({
+		...orpc.lectio.plans.recentLogs.queryOptions({
+			input: { planId, limit },
+		}),
+		initialData,
+	});
+}
+
 export function useCreatePlanMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation(
 		orpc.lectio.plans.create.mutationOptions({
 			onSuccess: async () => {
-				await queryClient.invalidateQueries({
-					queryKey: orpc.lectio.plans.list.queryKey({
-						input: {
-							includeArchived: false,
-						},
-					}),
-				});
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(true) });
 			},
 		}),
 	);
@@ -79,35 +109,28 @@ export function useDeletePlanMutation() {
 	return useMutation(
 		orpc.lectio.plans.delete.mutationOptions({
 			onMutate: async ({ planId }) => {
-				const plansQueryKey = orpc.lectio.plans.list.queryKey({
-					input: {
-						includeArchived: false,
-					},
-				});
-
-				await queryClient.cancelQueries({ queryKey: plansQueryKey });
-				const previousPlans = queryClient.getQueryData<PlansListResponse>(plansQueryKey);
+				const queryKey = plansListKey(false);
+				await queryClient.cancelQueries({ queryKey });
+				const previousPlans = queryClient.getQueryData<PlansListResponse>(queryKey);
 
 				queryClient.setQueryData<PlansListResponse>(
-					plansQueryKey,
+					queryKey,
 					(current) => current?.filter((plan) => plan.id !== planId) ?? [],
 				);
 
-				return { previousPlans, plansQueryKey };
+				return { previousPlans, queryKey };
 			},
 			onError: (_error, _variables, context) => {
 				if (context?.previousPlans) {
-					queryClient.setQueryData(context.plansQueryKey, context.previousPlans);
+					queryClient.setQueryData(context.queryKey, context.previousPlans);
 				}
 				toastError(t("saveError"));
 			},
 			onSettled: async () => {
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(true) });
 				await queryClient.invalidateQueries({
-					queryKey: orpc.lectio.plans.list.queryKey({
-						input: {
-							includeArchived: false,
-						},
-					}),
+					queryKey: orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } }),
 				});
 			},
 		}),
@@ -117,15 +140,6 @@ export function useDeletePlanMutation() {
 export function usePlanBuilderQuery(planId: string, initialData?: BuilderResponse) {
 	return useQuery({
 		...orpc.lectio.plans.builder.queryOptions({
-			input: { planId },
-		}),
-		initialData,
-	});
-}
-
-export function usePlanProgressQuery(planId: string, initialData?: ProgressResponse) {
-	return useQuery({
-		...orpc.lectio.plans.progress.queryOptions({
 			input: { planId },
 		}),
 		initialData,
@@ -165,20 +179,12 @@ export function useUpdatePlanMutation(planId: string) {
 	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
 		input: { planId },
 	});
-	const plansQueryKey = orpc.lectio.plans.list.queryKey({
-		input: {
-			includeArchived: false,
-		},
-	});
 
 	return useMutation(
 		orpc.lectio.plans.update.mutationOptions({
 			onMutate: async (variables) => {
 				await queryClient.cancelQueries({ queryKey: builderQueryKey });
-				await queryClient.cancelQueries({ queryKey: plansQueryKey });
-
 				const previousBuilder = queryClient.getQueryData<BuilderResponse>(builderQueryKey);
-				const previousPlans = queryClient.getQueryData<PlansListResponse>(plansQueryKey);
 
 				queryClient.setQueryData<BuilderResponse>(builderQueryKey, (current) =>
 					updateBuilderCache(current, (draft) => ({
@@ -190,131 +196,28 @@ export function useUpdatePlanMutation(planId: string) {
 								variables.description !== undefined
 									? variables.description
 									: draft.plan.description,
+							color:
+								variables.color !== undefined ? variables.color : draft.plan.color,
+							icon: variables.icon !== undefined ? variables.icon : draft.plan.icon,
+							startDate:
+								variables.startDate !== undefined
+									? variables.startDate
+									: draft.plan.startDate,
+							targetEndDate:
+								variables.targetEndDate !== undefined
+									? variables.targetEndDate
+									: draft.plan.targetEndDate,
+							cadence:
+								variables.cadence !== undefined ? variables.cadence : draft.plan.cadence,
+							archivedAt:
+								variables.archived === undefined
+									? draft.plan.archivedAt
+									: variables.archived
+										? draft.plan.archivedAt ?? new Date()
+										: null,
 						},
 					})),
 				);
-
-				queryClient.setQueryData<PlansListResponse>(
-					plansQueryKey,
-					(current) =>
-						current?.map((plan) =>
-							plan.id === planId
-								? {
-										...plan,
-										title: variables.title ?? plan.title,
-										description:
-											variables.description !== undefined
-												? variables.description
-												: plan.description,
-									}
-								: plan,
-						) ?? [],
-				);
-
-				return {
-					previousBuilder,
-					previousPlans,
-					builderQueryKey,
-					plansQueryKey,
-				};
-			},
-			onError: (_error, _variables, context) => {
-				if (context?.previousBuilder) {
-					queryClient.setQueryData(context.builderQueryKey, context.previousBuilder);
-				}
-				if (context?.previousPlans) {
-					queryClient.setQueryData(context.plansQueryKey, context.previousPlans);
-				}
-				toastError(t("saveError"));
-			},
-			onSettled: async () => {
-				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: plansQueryKey });
-			},
-		}),
-	);
-}
-
-export function useAddPlanBookMutation(planId: string) {
-	const queryClient = useQueryClient();
-	const t = useTranslations("lectio.toast");
-	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
-		input: { planId },
-	});
-	const progressQueryKey = orpc.lectio.plans.progress.queryKey({
-		input: { planId },
-	});
-	const plansQueryKey = orpc.lectio.plans.list.queryKey({
-		input: {
-			includeArchived: false,
-		},
-	});
-	const booksQueryKey = orpc.lectio.books.list.queryKey({
-		input: {},
-	});
-
-	return useMutation(
-		orpc.lectio.planBooks.add.mutationOptions({
-			onMutate: async (variables) => {
-				await queryClient.cancelQueries({ queryKey: builderQueryKey });
-				await queryClient.cancelQueries({ queryKey: booksQueryKey });
-
-				const previousBuilder = queryClient.getQueryData<BuilderResponse>(builderQueryKey);
-				const books = queryClient.getQueryData<BooksResponse>(booksQueryKey);
-
-				queryClient.setQueryData<BuilderResponse>(builderQueryKey, (current) => {
-					if (!current) {
-						return current;
-					}
-
-					const existing = current.planBooks.find(
-						(planBook) => planBook.bookId === variables.bookId,
-					);
-
-					if (existing) {
-						return current;
-					}
-
-					const optimisticBook =
-						books?.find((book) => book.id === variables.bookId) ??
-						current.planBooks.at(0)?.book ?? {
-							id: variables.bookId,
-							usfmCode: "",
-							name: "Book",
-							testament: "OT",
-							canonOrder: 999,
-							chapterCount: 0,
-						};
-
-					const nextOrder = current.planBooks.length;
-					const optimistic: PlanBookRow = {
-						id: `optimistic-${variables.bookId}`,
-						planId,
-						bookId: variables.bookId,
-						orderIndex: nextOrder,
-						resourceUrl: null,
-						resourceLabel: null,
-						resourceType: null,
-						notes: null,
-						status: "not_started",
-						startedAt: null,
-						completedAt: null,
-						createdAt: new Date(),
-						book: optimisticBook,
-						logCount: 0,
-						lastLoggedAt: null,
-					};
-
-					return {
-						...current,
-						planBooks: sortPlanBooks([...current.planBooks, optimistic]),
-						stats: {
-							...current.stats,
-							totalBooks: current.stats.totalBooks + 1,
-							notStartedBooks: current.stats.notStartedBooks + 1,
-						},
-					};
-				});
 
 				return { previousBuilder };
 			},
@@ -326,8 +229,28 @@ export function useAddPlanBookMutation(planId: string) {
 			},
 			onSettled: async () => {
 				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: progressQueryKey });
-				await queryClient.invalidateQueries({ queryKey: plansQueryKey });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(true) });
+			},
+		}),
+	);
+}
+
+export function useAddPlanBooksMutation(planId: string) {
+	const queryClient = useQueryClient();
+	const t = useTranslations("lectio.toast");
+	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
+		input: { planId },
+	});
+
+	return useMutation(
+		orpc.lectio.planBooks.addMany.mutationOptions({
+			onError: () => {
+				toastError(t("saveError"));
+			},
+			onSettled: async () => {
+				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
 			},
 		}),
 	);
@@ -338,14 +261,6 @@ export function useRemovePlanBookMutation(planId: string) {
 	const t = useTranslations("lectio.toast");
 	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
 		input: { planId },
-	});
-	const progressQueryKey = orpc.lectio.plans.progress.queryKey({
-		input: { planId },
-	});
-	const plansQueryKey = orpc.lectio.plans.list.queryKey({
-		input: {
-			includeArchived: false,
-		},
 	});
 
 	return useMutation(
@@ -382,6 +297,8 @@ export function useRemovePlanBookMutation(planId: string) {
 					}
 
 					stats.totalLogs = Math.max(0, stats.totalLogs - target.logCount);
+					stats.chaptersInScope = Math.max(0, stats.chaptersInScope - target.chaptersInScope);
+					stats.chaptersCovered = Math.max(0, stats.chaptersCovered - target.chaptersCovered);
 
 					return {
 						...current,
@@ -400,8 +317,7 @@ export function useRemovePlanBookMutation(planId: string) {
 			},
 			onSettled: async () => {
 				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: progressQueryKey });
-				await queryClient.invalidateQueries({ queryKey: plansQueryKey });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
 			},
 		}),
 	);
@@ -411,9 +327,6 @@ export function useReorderPlanBooksMutation(planId: string) {
 	const queryClient = useQueryClient();
 	const t = useTranslations("lectio.toast");
 	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
-		input: { planId },
-	});
-	const progressQueryKey = orpc.lectio.plans.progress.queryKey({
 		input: { planId },
 	});
 
@@ -435,7 +348,6 @@ export function useReorderPlanBooksMutation(planId: string) {
 							if (!row) {
 								return null;
 							}
-
 							return {
 								...row,
 								orderIndex: index,
@@ -445,7 +357,7 @@ export function useReorderPlanBooksMutation(planId: string) {
 
 					return {
 						...current,
-						planBooks: reordered,
+						planBooks: sortPlanBooks(reordered),
 					};
 				});
 
@@ -459,7 +371,6 @@ export function useReorderPlanBooksMutation(planId: string) {
 			},
 			onSettled: async () => {
 				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: progressQueryKey });
 			},
 		}),
 	);
@@ -471,93 +382,15 @@ export function useUpdatePlanBookMutation(planId: string) {
 	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
 		input: { planId },
 	});
-	const progressQueryKey = orpc.lectio.plans.progress.queryKey({
-		input: { planId },
-	});
-	const plansQueryKey = orpc.lectio.plans.list.queryKey({
-		input: {
-			includeArchived: false,
-		},
-	});
 
 	return useMutation(
 		orpc.lectio.planBooks.update.mutationOptions({
-			onMutate: async (variables) => {
-				await queryClient.cancelQueries({ queryKey: builderQueryKey });
-
-				const previousBuilder = queryClient.getQueryData<BuilderResponse>(builderQueryKey);
-
-				queryClient.setQueryData<BuilderResponse>(builderQueryKey, (current) => {
-					if (!current) {
-						return current;
-					}
-
-					const currentTarget = current.planBooks.find(
-						(planBook) => planBook.id === variables.planBookId,
-					);
-
-					const nextRows = current.planBooks.map((planBook) => {
-						if (planBook.id !== variables.planBookId) {
-							return planBook;
-						}
-
-						return {
-							...planBook,
-							resourceUrl:
-								variables.resourceUrl !== undefined
-									? variables.resourceUrl
-									: planBook.resourceUrl,
-							resourceLabel:
-								variables.resourceLabel !== undefined
-									? variables.resourceLabel
-									: planBook.resourceLabel,
-							resourceType:
-								variables.resourceType !== undefined
-									? variables.resourceType
-									: planBook.resourceType,
-							notes: variables.notes !== undefined ? variables.notes : planBook.notes,
-							status: variables.status ?? planBook.status,
-						};
-					});
-
-					const stats = { ...current.stats };
-					if (currentTarget && variables.status && variables.status !== currentTarget.status) {
-						if (currentTarget.status === "completed") {
-							stats.completedBooks = Math.max(0, stats.completedBooks - 1);
-						} else if (currentTarget.status === "in_progress") {
-							stats.inProgressBooks = Math.max(0, stats.inProgressBooks - 1);
-						} else {
-							stats.notStartedBooks = Math.max(0, stats.notStartedBooks - 1);
-						}
-
-						if (variables.status === "completed") {
-							stats.completedBooks += 1;
-						} else if (variables.status === "in_progress") {
-							stats.inProgressBooks += 1;
-						} else {
-							stats.notStartedBooks += 1;
-						}
-					}
-
-					return {
-						...current,
-						planBooks: nextRows,
-						stats,
-					};
-				});
-
-				return { previousBuilder };
-			},
-			onError: (_error, _variables, context) => {
-				if (context?.previousBuilder) {
-					queryClient.setQueryData(builderQueryKey, context.previousBuilder);
-				}
+			onError: () => {
 				toastError(t("saveError"));
 			},
 			onSettled: async () => {
 				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: progressQueryKey });
-				await queryClient.invalidateQueries({ queryKey: plansQueryKey });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
 			},
 		}),
 	);
@@ -580,29 +413,38 @@ export function useReadingLogsQuery(
 	});
 }
 
-export function useCreateReadingLogMutation(planId: string) {
+export function useLogReadingMutation() {
 	const queryClient = useQueryClient();
 	const t = useTranslations("lectio.toast");
-	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
-		input: { planId },
-	});
-	const progressQueryKey = orpc.lectio.plans.progress.queryKey({
-		input: { planId },
-	});
 
 	return useMutation(
-		orpc.lectio.readingLogs.create.mutationOptions({
+		orpc.lectio.readingLogs.log.mutationOptions({
 			onError: () => {
 				toastError(t("saveError"));
 			},
 			onSuccess: async (_result, variables) => {
-				await queryClient.invalidateQueries({
-					queryKey: orpc.lectio.readingLogs.list.queryKey({
-						input: { planId, planBookId: variables.planBookId },
+				await Promise.all([
+					queryClient.invalidateQueries({
+						queryKey: orpc.lectio.plans.builder.queryKey({
+							input: { planId: variables.planId },
+						}),
 					}),
-				});
-				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: progressQueryKey });
+					queryClient.invalidateQueries({
+						queryKey: orpc.lectio.plans.recentLogs.queryKey({
+							input: { planId: variables.planId, limit: 50 },
+						}),
+					}),
+					queryClient.invalidateQueries({
+						queryKey: orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } }),
+					}),
+					queryClient.invalidateQueries({
+						queryKey: orpc.lectio.readingLogs.list.queryKey({
+							input: { planId: variables.planId, planBookId: variables.planBookId },
+						}),
+					}),
+					queryClient.invalidateQueries({ queryKey: plansListKey(false) }),
+					queryClient.invalidateQueries({ queryKey: plansListKey(true) }),
+				]);
 			},
 		}),
 	);
@@ -614,9 +456,10 @@ export function useDeleteReadingLogMutation(planId: string, planBookId: string) 
 	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
 		input: { planId },
 	});
-	const progressQueryKey = orpc.lectio.plans.progress.queryKey({
-		input: { planId },
+	const recentQueryKey = orpc.lectio.plans.recentLogs.queryKey({
+		input: { planId, limit: 50 },
 	});
+	const userRecentKey = orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } });
 	const logsQueryKey = orpc.lectio.readingLogs.list.queryKey({
 		input: { planId, planBookId },
 	});
@@ -629,8 +472,7 @@ export function useDeleteReadingLogMutation(planId: string, planBookId: string) 
 
 				queryClient.setQueryData<ReadingLogsResponse>(
 					logsQueryKey,
-					(current) =>
-						current?.filter((log) => log.id !== variables.readingLogId) ?? [],
+					(current) => current?.filter((log) => log.id !== variables.readingLogId) ?? [],
 				);
 
 				return { previousLogs };
@@ -644,9 +486,10 @@ export function useDeleteReadingLogMutation(planId: string, planBookId: string) 
 			onSettled: async () => {
 				await queryClient.invalidateQueries({ queryKey: logsQueryKey });
 				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: progressQueryKey });
+				await queryClient.invalidateQueries({ queryKey: recentQueryKey });
+				await queryClient.invalidateQueries({ queryKey: userRecentKey });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
 			},
 		}),
 	);
 }
-

@@ -1,38 +1,43 @@
 import { getSession } from "@auth/lib/server";
 import { ORPCError } from "@orpc/client";
 import { getPlanBuilderProcedure } from "@repo/api/modules/lectio/procedures/get-plan-builder";
-import { getPlanProgressProcedure } from "@repo/api/modules/lectio/procedures/get-plan-progress";
 import { getVerseOfDayProcedure } from "@repo/api/modules/lectio/procedures/get-verse-of-day";
 import { listPlansProcedure } from "@repo/api/modules/lectio/procedures/list-plans";
+import { listRecentPlanLogsProcedure } from "@repo/api/modules/lectio/procedures/list-recent-plan-logs";
+import { listRecentUserLogsProcedure } from "@repo/api/modules/lectio/procedures/list-recent-user-logs";
 import { headers } from "next/headers";
 import { cache } from "react";
 
 import type {
 	BuilderResponse,
+	PlanRecentLogsResponse,
 	PlansListResponse,
-	ProgressResponse,
+	RecentLogsResponse,
 	VerseOfDayResponse,
 } from "../hooks/use-lectio";
 
 export type DashboardPlans = PlansListResponse;
 export type DashboardVerseOfDay = VerseOfDayResponse;
 export type BuilderPageData = BuilderResponse;
-export type ProgressPageData = ProgressResponse;
+export type DashboardRecentLogs = RecentLogsResponse;
+export type PlanRecentLogs = PlanRecentLogsResponse;
 
-export const listPlans = cache(async (): Promise<DashboardPlans> => {
-	const session = await getSession();
-	if (!session) {
-		throw new ORPCError("UNAUTHORIZED");
-	}
+export const listPlans = cache(
+	async (options: { includeArchived?: boolean } = {}): Promise<DashboardPlans> => {
+		const session = await getSession();
+		if (!session) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
 
-	const callable = listPlansProcedure.callable({
-		context: { headers: await headers() },
-	});
+		const callable = listPlansProcedure.callable({
+			context: { headers: await headers() },
+		});
 
-	return callable({
-		includeArchived: false,
-	});
-});
+		return callable({
+			includeArchived: options.includeArchived ?? false,
+		});
+	},
+);
 
 export const loadVerseOfDay = cache(async (): Promise<DashboardVerseOfDay> => {
 	const callable = getVerseOfDayProcedure.callable({
@@ -61,17 +66,32 @@ export const getPlanBuilder = cache(async (planId: string): Promise<BuilderPageD
 	});
 });
 
-export const getPlanProgress = cache(async (planId: string): Promise<ProgressPageData | null> => {
-	const session = await getSession();
-	if (!session) {
-		throw new ORPCError("UNAUTHORIZED");
-	}
+export const loadUserRecentReadingLogs = cache(
+	async (limit = 30): Promise<DashboardRecentLogs> => {
+		const session = await getSession();
+		if (!session) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
 
-	const callable = getPlanProgressProcedure.callable({
-		context: { headers: await headers() },
-	});
+		const callable = listRecentUserLogsProcedure.callable({
+			context: { headers: await headers() },
+		});
 
-	return callable({
-		planId,
-	});
-});
+		return callable({ limit });
+	},
+);
+
+export const loadPlanRecentReadingLogs = cache(
+	async (planId: string, limit = 50): Promise<PlanRecentLogs> => {
+		const session = await getSession();
+		if (!session) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		const callable = listRecentPlanLogsProcedure.callable({
+			context: { headers: await headers() },
+		});
+
+		return callable({ planId, limit });
+	},
+);
