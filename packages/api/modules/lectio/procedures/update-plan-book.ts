@@ -7,8 +7,8 @@ import {
 } from "@repo/database";
 import { z } from "zod";
 
-import { planStatusSchema } from "../lib/schemas";
 import { protectedProcedure } from "../../../orpc/procedures";
+import { planStatusSchema } from "../lib/schemas";
 
 const updatePlanBookInputSchema = z
 	.object({
@@ -102,8 +102,7 @@ export const updatePlanBookProcedure = protectedProcedure
 				changes.completedAt = null;
 			} else {
 				changes.startedAt = current.startedAt ?? now;
-				changes.completedAt =
-					input.status === "completed" ? current.completedAt ?? now : null;
+				changes.completedAt = input.status === "completed" ? (current.completedAt ?? now) : null;
 			}
 		}
 

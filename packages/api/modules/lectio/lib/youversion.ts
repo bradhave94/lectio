@@ -33,10 +33,7 @@ function normalizeVerseOfDayResponse(payload: unknown): VerseOfDayResponse {
 	if (payload && typeof payload === "object") {
 		const record = payload as Record<string, unknown>;
 
-		if (
-			typeof record.day === "number" &&
-			typeof record.passage_id === "string"
-		) {
+		if (typeof record.day === "number" && typeof record.passage_id === "string") {
 			return {
 				day: record.day,
 				passage_id: record.passage_id,
@@ -45,10 +42,7 @@ function normalizeVerseOfDayResponse(payload: unknown): VerseOfDayResponse {
 
 		if (record.data && typeof record.data === "object") {
 			const nested = record.data as Record<string, unknown>;
-			if (
-				typeof nested.day === "number" &&
-				typeof nested.passage_id === "string"
-			) {
+			if (typeof nested.day === "number" && typeof nested.passage_id === "string") {
 				return {
 					day: nested.day,
 					passage_id: nested.passage_id,

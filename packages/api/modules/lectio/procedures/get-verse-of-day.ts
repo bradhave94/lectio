@@ -1,5 +1,5 @@
-import { getYouVersionVerseOfDay } from "../lib/youversion";
 import { publicProcedure } from "../../../orpc/procedures";
+import { getYouVersionVerseOfDay } from "../lib/youversion";
 
 export const getVerseOfDayProcedure = publicProcedure
 	.route({

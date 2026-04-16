@@ -24,14 +24,7 @@ export const notificationTargetEnum = pgEnum("NotificationTarget", ["IN_APP", "E
 
 export const testamentValues = ["OT", "NT"] as const;
 export const planBookStatusValues = ["not_started", "in_progress", "completed"] as const;
-export const planColorValues = [
-	"emerald",
-	"sky",
-	"violet",
-	"amber",
-	"rose",
-	"slate",
-] as const;
+export const planColorValues = ["emerald", "sky", "violet", "amber", "rose", "slate"] as const;
 export const planIconValues = [
 	"BookOpen",
 	"Sparkles",
@@ -417,7 +410,9 @@ export const readingLogs = pgTable(
 		verseStart: integer("verse_start"),
 		verseEnd: integer("verse_end"),
 		note: text("note"),
-		loggedAt: date("logged_at").notNull().default(sql`CURRENT_DATE`),
+		loggedAt: date("logged_at")
+			.notNull()
+			.default(sql`CURRENT_DATE`),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [

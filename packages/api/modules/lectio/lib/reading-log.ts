@@ -132,9 +132,7 @@ export function formatChapterRanges(ranges: ChapterRange[]): string {
 		.join(", ");
 }
 
-export function validateReadingLogInput(
-	input: ValidateReadingLogInput,
-): ValidateReadingLogResult {
+export function validateReadingLogInput(input: ValidateReadingLogInput): ValidateReadingLogResult {
 	if (input.chapter <= 0) {
 		return {
 			isValid: false,

@@ -132,7 +132,7 @@ export function LogReadingDialog({
 	const tToast = useTranslations("lectio.toast");
 
 	const plansQuery = useLectioPlansQuery();
-	const plans = plansQuery.data ?? [];
+	const plans = useMemo(() => plansQuery.data ?? [], [plansQuery.data]);
 
 	const [planId, setPlanId] = useState<string | undefined>(defaultPlanId);
 	const [planBookId, setPlanBookId] = useState<string | undefined>(defaultPlanBookId);
@@ -171,7 +171,10 @@ export function LogReadingDialog({
 	}, [planId, plans]);
 
 	const builderQuery = usePlanBuilderQuery(planId ?? "", undefined);
-	const planBooks = builderQuery.data?.planBooks ?? [];
+	const planBooks = useMemo(
+		() => builderQuery.data?.planBooks ?? [],
+		[builderQuery.data?.planBooks],
+	);
 
 	useEffect(() => {
 		if (!planId) {
@@ -211,7 +214,7 @@ export function LogReadingDialog({
 	}, [planBookId]);
 
 	const { data: chaptersData } = useBookChaptersQuery(selectedPlanBook?.bookId ?? null);
-	const chapterMeta = chaptersData?.chapters ?? [];
+	const chapterMeta = useMemo(() => chaptersData?.chapters ?? [], [chaptersData?.chapters]);
 
 	const isSingleChapter = selectedChapters.length === 1;
 	const verseChapter = isSingleChapter ? selectedChapters[0] : null;
@@ -232,9 +235,7 @@ export function LogReadingDialog({
 	const handleToggleChapter = (chapter: number) => {
 		setSelectedChapters((current) => {
 			const exists = current.includes(chapter);
-			const next = exists
-				? current.filter((value) => value !== chapter)
-				: [...current, chapter];
+			const next = exists ? current.filter((value) => value !== chapter) : [...current, chapter];
 			next.sort((a, b) => a - b);
 			const nextRanges = rangesFromChapters(next);
 			setChapterText(formatChapterListLabel(nextRanges));
@@ -301,27 +302,25 @@ export function LogReadingDialog({
 		}
 	};
 
-	const planChoiceColor = colorTokens(
-		plans.find((plan) => plan.id === planId)?.color ?? null,
-	);
+	const planChoiceColor = colorTokens(plans.find((plan) => plan.id === planId)?.color ?? null);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[640px] max-h-[90vh] flex flex-col">
+			<DialogContent className="sm:max-w-[640px] flex max-h-[90vh] flex-col">
 				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
+					<DialogTitle className="gap-2 flex items-center">
 						<BookOpenIcon className="size-5" />
 						{t("title")}
 					</DialogTitle>
 					<DialogDescription>{t("subtitle")}</DialogDescription>
 				</DialogHeader>
 
-				<div className="space-y-5 overflow-y-auto pr-1 -mr-1">
+				<div className="space-y-5 pr-1 -mr-1 overflow-y-auto">
 					{/* Plan picker */}
 					<div className="space-y-1.5">
 						<Label htmlFor="log-plan">{t("planLabel")}</Label>
 						{plans.length === 0 ? (
-							<p className="text-sm text-muted-foreground rounded-md border border-dashed px-3 py-2">
+							<p className="text-sm px-3 py-2 rounded-md border border-dashed text-muted-foreground">
 								{t("noPlans")}
 							</p>
 						) : (
@@ -340,7 +339,7 @@ export function LogReadingDialog({
 										const tokens = colorTokens(plan.color);
 										return (
 											<SelectItem key={plan.id} value={plan.id}>
-												<span className="flex items-center gap-2">
+												<span className="gap-2 flex items-center">
 													<span className={cn("size-2 rounded-full", tokens.dot)} />
 													{plan.title}
 												</span>
@@ -412,7 +411,7 @@ export function LogReadingDialog({
 							{chapterTextError ? (
 								<p className="text-xs text-destructive">{t("invalidRange")}</p>
 							) : null}
-							<div className="grid grid-cols-8 gap-1.5 pt-1 sm:grid-cols-10">
+							<div className="gap-1.5 pt-1 sm:grid-cols-10 grid grid-cols-8">
 								{availableChapters.map((chapter) => {
 									const selected = selectedChapters.includes(chapter);
 									return (
@@ -421,7 +420,7 @@ export function LogReadingDialog({
 											type="button"
 											onClick={() => handleToggleChapter(chapter)}
 											className={cn(
-												"relative h-9 rounded-md border text-sm font-medium transition-colors",
+												"h-9 text-sm font-medium relative rounded-md border transition-colors",
 												selected
 													? "border-primary bg-primary text-primary-foreground"
 													: "border-border bg-background hover:bg-accent",
@@ -429,7 +428,7 @@ export function LogReadingDialog({
 										>
 											{chapter}
 											{selected ? (
-												<CheckIcon className="absolute right-0.5 top-0.5 size-2.5 opacity-70" />
+												<CheckIcon className="right-0.5 top-0.5 size-2.5 absolute opacity-70" />
 											) : null}
 										</button>
 									);
@@ -442,7 +441,7 @@ export function LogReadingDialog({
 					{selectedPlanBook && isSingleChapter ? (
 						<div className="space-y-1.5">
 							<Label>{t("verseRangeLabel")}</Label>
-							<div className="flex items-center gap-2">
+							<div className="gap-2 flex items-center">
 								<Select
 									value={verseStart || "any"}
 									onValueChange={(value) => setVerseStart(value === "any" ? "" : value)}

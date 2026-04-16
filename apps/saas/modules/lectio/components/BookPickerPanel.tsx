@@ -1,7 +1,7 @@
 "use client";
 
-import { TESTAMENT_OPTIONS } from "@lectio/lib/constants";
 import { useBooksQuery, type BooksResponse } from "@lectio/hooks/use-lectio";
+import { TESTAMENT_OPTIONS } from "@lectio/lib/constants";
 import { Badge, Button, Card, cn, Input, Tabs, TabsList, TabsTrigger } from "@repo/ui";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -50,8 +50,8 @@ export function BookPickerPanel({
 	};
 
 	return (
-		<Card className="p-4 md:p-5 flex flex-col gap-4">
-			<div className="flex items-center justify-between gap-2">
+		<Card className="p-4 md:p-5 gap-4 flex flex-col">
+			<div className="gap-2 flex items-center justify-between">
 				<h2 className="font-semibold text-lg">{t("editor.bookPicker.title")}</h2>
 				{onAddSelected ? (
 					<Button
@@ -73,10 +73,7 @@ export function BookPickerPanel({
 				placeholder={t("editor.bookPicker.searchPlaceholder")}
 			/>
 
-			<Tabs
-				value={testament}
-				onValueChange={(value) => setTestament(value as "ALL" | "OT" | "NT")}
-			>
+			<Tabs value={testament} onValueChange={(value) => setTestament(value as "ALL" | "OT" | "NT")}>
 				<TabsList className="w-full justify-start">
 					{TESTAMENT_OPTIONS.map((option) => (
 						<TabsTrigger key={option.value} value={option.value}>
@@ -86,7 +83,7 @@ export function BookPickerPanel({
 				</TabsList>
 			</Tabs>
 
-			<div className="max-h-[60vh] space-y-1 overflow-y-auto pr-1">
+			<div className="space-y-1 pr-1 max-h-[60vh] overflow-y-auto">
 				{isPending ? (
 					<div className="space-y-1.5">
 						{Array.from({ length: 8 }).map((_, index) => (
@@ -94,7 +91,7 @@ export function BookPickerPanel({
 						))}
 					</div>
 				) : books.length === 0 ? (
-					<p className="rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+					<p className="px-4 py-8 text-sm rounded-md border border-dashed text-center text-muted-foreground">
 						{t("editor.bookPicker.empty")}
 					</p>
 				) : (
@@ -108,7 +105,7 @@ export function BookPickerPanel({
 								disabled={isInPlan}
 								onClick={() => toggleBook(book.id)}
 								className={cn(
-									"flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm transition-colors",
+									"gap-3 px-3 py-2 text-sm flex w-full items-center justify-between rounded-md border text-left transition-colors",
 									isInPlan
 										? "border-border bg-muted/40 text-muted-foreground"
 										: isSelected
@@ -116,10 +113,10 @@ export function BookPickerPanel({
 											: "border-border bg-background hover:bg-accent",
 								)}
 							>
-								<span className="flex min-w-0 items-center gap-3">
+								<span className="min-w-0 gap-3 flex items-center">
 									<span
 										className={cn(
-											"flex size-5 items-center justify-center rounded border",
+											"size-5 rounded flex items-center justify-center border",
 											isSelected
 												? "border-primary bg-primary text-primary-foreground"
 												: "border-border bg-background",
@@ -129,8 +126,8 @@ export function BookPickerPanel({
 										{isSelected ? <CheckIcon className="size-3.5" /> : null}
 									</span>
 									<span className="min-w-0">
-										<span className="block truncate font-medium">{book.name}</span>
-										<span className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+										<span className="font-medium block truncate">{book.name}</span>
+										<span className="mt-0.5 gap-2 text-xs flex items-center text-muted-foreground">
 											<Badge status={book.testament === "OT" ? "warning" : "info"}>
 												{book.testament}
 											</Badge>

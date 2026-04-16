@@ -1,7 +1,7 @@
 "use client";
 
-import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import type { PlansListResponse } from "@lectio/hooks/use-lectio";
+import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import {
 	Button,
 	Card,
@@ -47,24 +47,21 @@ export function PlanCard({
 
 	return (
 		<Card className={cn("p-4 space-y-3 border-l-4", tokens.border, archived && "opacity-70")}>
-			<div className="flex items-start justify-between gap-2">
-				<Link
-					href={`/plans/${plan.id}`}
-					className="group flex min-w-0 items-center gap-2"
-				>
+			<div className="gap-2 flex items-start justify-between">
+				<Link href={`/plans/${plan.id}`} className="group min-w-0 gap-2 flex items-center">
 					<span
 						className={cn(
-							"flex size-9 shrink-0 items-center justify-center rounded-md",
+							"size-9 flex shrink-0 items-center justify-center rounded-md",
 							tokens.soft,
 						)}
 					>
 						<Icon className={cn("size-5", tokens.text)} />
 					</span>
 					<div className="min-w-0">
-						<p className="truncate font-semibold leading-tight group-hover:underline">
+						<p className="font-semibold leading-tight truncate group-hover:underline">
 							{plan.title}
 						</p>
-						<p className="truncate text-xs text-muted-foreground">
+						<p className="text-xs truncate text-muted-foreground">
 							{plan.description?.trim() || t("home.card.noDescription")}
 						</p>
 					</div>
@@ -103,7 +100,7 @@ export function PlanCard({
 
 			<div className="space-y-1.5">
 				<Progress value={completion} className="h-1.5" />
-				<div className="flex items-center justify-between text-xs text-muted-foreground">
+				<div className="text-xs flex items-center justify-between text-muted-foreground">
 					<span>
 						{t("home.card.bookProgress", {
 							completed: plan.completedBooks,
@@ -118,7 +115,7 @@ export function PlanCard({
 				</div>
 			</div>
 
-			<div className="flex items-center justify-between gap-2">
+			<div className="gap-2 flex items-center justify-between">
 				<p className="text-xs text-muted-foreground">
 					{t("home.card.updatedAt", {
 						date: format.dateTime(new Date(plan.updatedAt), { dateStyle: "medium" }),

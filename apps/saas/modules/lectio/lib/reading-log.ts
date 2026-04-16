@@ -31,9 +31,7 @@ export function formatReadingLogLabel(log: ReadingLogLike): string {
  *
  * Example: `[{ start: 1, end: 1 }, { start: 3, end: 5 }]` → `"1, 3–5"`.
  */
-export function formatChapterListLabel(
-	ranges: Array<{ start: number; end: number }>,
-): string {
+export function formatChapterListLabel(ranges: Array<{ start: number; end: number }>): string {
 	if (ranges.length === 0) {
 		return "";
 	}

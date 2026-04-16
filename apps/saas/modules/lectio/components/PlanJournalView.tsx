@@ -3,7 +3,6 @@
 import { useLogReading } from "@lectio/components/LogReadingProvider";
 import { PlanStatusBadge } from "@lectio/components/PlanStatusBadge";
 import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
-import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import {
 	useDeletePlanMutation,
 	useDeleteReadingLogMutation,
@@ -15,6 +14,7 @@ import {
 	type PlanRecentLogsResponse,
 	type RecentLogsResponse,
 } from "@lectio/hooks/use-lectio";
+import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import {
 	Button,
 	Card,
@@ -106,18 +106,18 @@ export function PlanJournalView({
 
 	return (
 		<div className="space-y-6">
-			<div className="flex flex-wrap items-start justify-between gap-3">
+			<div className="gap-3 flex flex-wrap items-start justify-between">
 				<div className="space-y-2">
 					<Link
 						href="/"
-						className="inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
+						className="text-sm inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
 					>
 						{t("backToHome")}
 					</Link>
-					<div className="flex items-start gap-3">
+					<div className="gap-3 flex items-start">
 						<span
 							className={cn(
-								"flex size-12 shrink-0 items-center justify-center rounded-lg border",
+								"size-12 flex shrink-0 items-center justify-center rounded-lg border",
 								tokens.border,
 								tokens.soft,
 							)}
@@ -131,7 +131,7 @@ export function PlanJournalView({
 									{builder.plan.description}
 								</p>
 							) : null}
-							<div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+							<div className="mt-2 gap-2 text-xs flex flex-wrap items-center text-muted-foreground">
 								{builder.plan.startDate ? (
 									<span>
 										{t("startedOn", {
@@ -153,15 +153,13 @@ export function PlanJournalView({
 								) : null}
 								{builder.plan.cadence ? <span>· {builder.plan.cadence}</span> : null}
 								{isArchived ? (
-									<span className="rounded-full bg-muted px-2 py-0.5">
-										{t("archivedBadge")}
-									</span>
+									<span className="px-2 py-0.5 rounded-full bg-muted">{t("archivedBadge")}</span>
 								) : null}
 							</div>
 						</div>
 					</div>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
+				<div className="gap-2 flex flex-wrap items-center">
 					<Button
 						type="button"
 						onClick={() => openLogReading({ planId })}
@@ -199,7 +197,7 @@ export function PlanJournalView({
 
 			<Card className="p-5 space-y-4">
 				<div className="space-y-1.5">
-					<div className="flex items-center justify-between text-sm">
+					<div className="text-sm flex items-center justify-between">
 						<span className="font-medium">{t("overall")}</span>
 						<span className="text-muted-foreground">
 							{t("chaptersCovered", {
@@ -210,7 +208,7 @@ export function PlanJournalView({
 					</div>
 					<Progress value={overall} className="h-2" />
 				</div>
-				<div className="grid gap-2 sm:grid-cols-4">
+				<div className="gap-2 sm:grid-cols-4 grid">
 					{(
 						[
 							{ key: "not_started", value: builder.stats.notStartedBooks },
@@ -218,12 +216,12 @@ export function PlanJournalView({
 							{ key: "completed", value: builder.stats.completedBooks },
 						] as const
 					).map((item) => (
-						<div key={item.key} className="rounded-md border p-3">
+						<div key={item.key} className="p-3 rounded-md border">
 							<p className="text-xs text-muted-foreground">{tStatus(item.key)}</p>
 							<p className="text-xl font-semibold">{item.value}</p>
 						</div>
 					))}
-					<div className="rounded-md border p-3">
+					<div className="p-3 rounded-md border">
 						<p className="text-xs text-muted-foreground">{t("totalLogs")}</p>
 						<p className="text-xl font-semibold">{builder.stats.totalLogs}</p>
 					</div>
@@ -233,7 +231,7 @@ export function PlanJournalView({
 			<section className="space-y-3">
 				<h2 className="font-semibold text-base">{t("books")}</h2>
 				{builder.planBooks.length === 0 ? (
-					<Card className="p-8 text-center space-y-3">
+					<Card className="p-8 space-y-3 text-center">
 						<p className="font-medium">{t("emptyBooksTitle")}</p>
 						<p className="text-sm text-muted-foreground">{t("emptyBooksHint")}</p>
 						<Button asChild type="button">
@@ -294,13 +292,7 @@ function JournalActivity({
 	);
 }
 
-function PlanBookProgressRow({
-	planBook,
-	onLog,
-}: {
-	planBook: PlanBookRow;
-	onLog: () => void;
-}) {
+function PlanBookProgressRow({ planBook, onLog }: { planBook: PlanBookRow; onLog: () => void }) {
 	const t = useTranslations("lectio");
 	const completion = percent(planBook.chaptersCovered, planBook.chaptersInScope);
 	const scopeLabel =
@@ -313,11 +305,13 @@ function PlanBookProgressRow({
 
 	return (
 		<Card className="p-3 space-y-2">
-			<div className="flex items-start justify-between gap-3">
+			<div className="gap-3 flex items-start justify-between">
 				<div className="min-w-0">
-					<div className="flex items-center gap-2">
-						<p className="truncate font-medium">{planBook.book.name}</p>
-						<PlanStatusBadge status={planBook.status as "not_started" | "in_progress" | "completed"} />
+					<div className="gap-2 flex items-center">
+						<p className="font-medium truncate">{planBook.book.name}</p>
+						<PlanStatusBadge
+							status={planBook.status as "not_started" | "in_progress" | "completed"}
+						/>
 					</div>
 					<p className="text-xs text-muted-foreground">{scopeLabel}</p>
 				</div>

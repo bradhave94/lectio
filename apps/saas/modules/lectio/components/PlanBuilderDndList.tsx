@@ -39,11 +39,10 @@ function SortableRow({
 	disabled?: boolean;
 	children: ReactNode;
 }) {
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-		useSortable({
-			id,
-			disabled,
-		});
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+		id,
+		disabled,
+	});
 
 	return (
 		<div
@@ -53,14 +52,14 @@ function SortableRow({
 				transition,
 			}}
 			className={cn(
-				"rounded-lg border bg-card p-3 transition-shadow",
-				isDragging && "opacity-70 shadow-lg",
+				"p-3 rounded-lg border bg-card transition-shadow",
+				isDragging && "shadow-lg opacity-70",
 			)}
 		>
-			<div className="flex items-start gap-2">
+			<div className="gap-2 flex items-start">
 				<button
 					type="button"
-					className="mt-0.5 flex h-8 w-8 cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent active:cursor-grabbing"
+					className="mt-0.5 h-8 w-8 flex cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent active:cursor-grabbing"
 					aria-label="Reorder"
 					disabled={disabled}
 					{...attributes}
@@ -109,7 +108,7 @@ export function PlanBuilderDndList<T extends SortableItem>({
 	return (
 		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 			<SortableContext items={orderedIds} strategy={verticalListSortingStrategy}>
-				<div className="flex flex-col gap-2">
+				<div className="gap-2 flex flex-col">
 					{items.map((item, index) => (
 						<SortableRow key={item.id} id={item.id} disabled={disabled}>
 							{renderItem(item, index)}

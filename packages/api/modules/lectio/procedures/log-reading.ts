@@ -1,6 +1,6 @@
-import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
 
+import { ORPCError } from "@orpc/client";
 import {
 	createReadingLogsBatch,
 	getBookChapter,
@@ -10,8 +10,8 @@ import {
 } from "@repo/database";
 import { z } from "zod";
 
-import { chapterRangeSchema } from "../lib/schemas";
 import { protectedProcedure } from "../../../orpc/procedures";
+import { chapterRangeSchema } from "../lib/schemas";
 
 const inputSchema = z
 	.object({

@@ -2,8 +2,8 @@ import { ORPCError } from "@orpc/client";
 import { getUserPlanById, updatePlan, type UpdatePlanChanges } from "@repo/database";
 import { z } from "zod";
 
-import { planColorSchema, planDateSchema, planIconSchema } from "../lib/schemas";
 import { protectedProcedure } from "../../../orpc/procedures";
+import { planColorSchema, planDateSchema, planIconSchema } from "../lib/schemas";
 
 const updatePlanInputSchema = z.object({
 	planId: z.uuid(),

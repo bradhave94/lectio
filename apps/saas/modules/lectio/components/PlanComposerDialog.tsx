@@ -1,6 +1,7 @@
 "use client";
 
 import { BookPickerPanel } from "@lectio/components/BookPickerPanel";
+import { useCreatePlanMutation } from "@lectio/hooks/use-lectio";
 import {
 	colorTokens,
 	iconForKey,
@@ -10,7 +11,6 @@ import {
 	type PlanColorKey,
 	type PlanIconKey,
 } from "@lectio/lib/constants";
-import { useCreatePlanMutation } from "@lectio/hooks/use-lectio";
 import {
 	Button,
 	cn,
@@ -107,20 +107,24 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="sm:max-w-[640px] max-h-[90vh] flex flex-col">
+			<DialogContent className="sm:max-w-[640px] flex max-h-[90vh] flex-col">
 				<DialogHeader>
 					<DialogTitle>{t("title")}</DialogTitle>
 					<DialogDescription>{t("subtitle")}</DialogDescription>
 				</DialogHeader>
 
-				<Tabs value={step} onValueChange={(value) => setStep(value as Step)} className="flex flex-1 min-h-0 flex-col">
+				<Tabs
+					value={step}
+					onValueChange={(value) => setStep(value as Step)}
+					className="min-h-0 flex flex-1 flex-col"
+				>
 					<TabsList className="grid w-full grid-cols-3">
 						<TabsTrigger value="basics">{t("steps.basics")}</TabsTrigger>
 						<TabsTrigger value="personalize">{t("steps.personalize")}</TabsTrigger>
 						<TabsTrigger value="books">{t("steps.books")}</TabsTrigger>
 					</TabsList>
 
-					<div className="flex-1 min-h-0 overflow-y-auto py-4 pr-1 -mr-1">
+					<div className="min-h-0 py-4 pr-1 -mr-1 flex-1 overflow-y-auto">
 						<TabsContent value="basics" className="space-y-4 mt-0">
 							<div className="space-y-1.5">
 								<Label htmlFor="composer-title">{t("titleLabel")}</Label>
@@ -148,7 +152,7 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 						<TabsContent value="personalize" className="space-y-5 mt-0">
 							<div className="space-y-2">
 								<Label>{t("colorLabel")}</Label>
-								<div className="flex flex-wrap gap-2">
+								<div className="gap-2 flex flex-wrap">
 									{PLAN_COLOR_KEYS.map((key) => {
 										const tokens = PLAN_COLORS[key];
 										const selected = color === key;
@@ -158,7 +162,7 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 												type="button"
 												onClick={() => setColor(selected ? null : key)}
 												className={cn(
-													"flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors",
+													"gap-2 px-3 py-1.5 text-sm flex items-center rounded-full border transition-colors",
 													selected
 														? cn("border-primary", tokens.soft)
 														: "border-border bg-background hover:bg-accent",
@@ -174,7 +178,7 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 
 							<div className="space-y-2">
 								<Label>{t("iconLabel")}</Label>
-								<div className="flex flex-wrap gap-2">
+								<div className="gap-2 flex flex-wrap">
 									{PLAN_ICON_KEYS.map((key) => {
 										const ChipIcon = iconForKey(key);
 										const selected = icon === key;
@@ -184,7 +188,7 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 												type="button"
 												onClick={() => setIcon(selected ? null : key)}
 												className={cn(
-													"flex size-10 items-center justify-center rounded-md border transition-colors",
+													"size-10 flex items-center justify-center rounded-md border transition-colors",
 													selected
 														? "border-primary bg-primary/10"
 														: "border-border bg-background hover:bg-accent",
@@ -198,7 +202,7 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 								</div>
 							</div>
 
-							<div className="grid gap-3 sm:grid-cols-2">
+							<div className="gap-3 sm:grid-cols-2 grid">
 								<div className="space-y-1.5">
 									<Label htmlFor="composer-start">{t("startDateLabel")}</Label>
 									<Input
@@ -230,8 +234,14 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 								/>
 							</div>
 
-							<div className={cn("rounded-lg border p-3", colorTokens(color).border, colorTokens(color).soft)}>
-								<div className="flex items-center gap-2">
+							<div
+								className={cn(
+									"p-3 rounded-lg border",
+									colorTokens(color).border,
+									colorTokens(color).soft,
+								)}
+							>
+								<div className="gap-2 flex items-center">
 									<Icon className={cn("size-5", colorTokens(color).text)} />
 									<p className="font-medium">{title || t("preview.placeholderTitle")}</p>
 								</div>
@@ -248,18 +258,16 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 					</div>
 				</Tabs>
 
-				<DialogFooter className="border-t pt-4 sm:justify-between">
+				<DialogFooter className="pt-4 sm:justify-between border-t">
 					<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
 						{t("cancel")}
 					</Button>
-					<div className="flex items-center gap-2">
+					<div className="gap-2 flex items-center">
 						{step !== "basics" ? (
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() =>
-									setStep(step === "personalize" ? "basics" : "personalize")
-								}
+								onClick={() => setStep(step === "personalize" ? "basics" : "personalize")}
 							>
 								{t("back")}
 							</Button>
@@ -267,9 +275,7 @@ export function PlanComposerDialog({ open, onOpenChange }: PlanComposerDialogPro
 						{step !== "books" ? (
 							<Button
 								type="button"
-								onClick={() =>
-									setStep(step === "basics" ? "personalize" : "books")
-								}
+								onClick={() => setStep(step === "basics" ? "personalize" : "books")}
 								disabled={step === "basics" && !canSubmit}
 							>
 								{t("next")}

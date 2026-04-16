@@ -110,9 +110,11 @@ export type PlanColorKey = keyof typeof PLAN_COLOR_DEFINITIONS;
 export const PLAN_COLOR_KEYS = Object.keys(PLAN_COLOR_DEFINITIONS) as PlanColorKey[];
 
 export const PLAN_COLORS: Record<PlanColorKey, PlanColorTokens> = Object.fromEntries(
-	(Object.entries(PLAN_COLOR_DEFINITIONS) as Array<
-		[PlanColorKey, (typeof PLAN_COLOR_DEFINITIONS)[PlanColorKey]]
-	>).map(([key, value]) => [key, { key, ...value }]),
+	(
+		Object.entries(PLAN_COLOR_DEFINITIONS) as Array<
+			[PlanColorKey, (typeof PLAN_COLOR_DEFINITIONS)[PlanColorKey]]
+		>
+	).map(([key, value]) => [key, { key, ...value }]),
 ) as Record<PlanColorKey, PlanColorTokens>;
 
 const FALLBACK_COLOR: PlanColorKey = "sky";

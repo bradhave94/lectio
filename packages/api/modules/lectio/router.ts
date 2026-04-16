@@ -13,8 +13,8 @@ import { listRecentUserLogsProcedure } from "./procedures/list-recent-user-logs"
 import { logReadingProcedure } from "./procedures/log-reading";
 import { removePlanBookProcedure } from "./procedures/remove-plan-book";
 import { reorderPlanBooksProcedure } from "./procedures/reorder-plan-books";
-import { updatePlanBookProcedure } from "./procedures/update-plan-book";
 import { updatePlanProcedure } from "./procedures/update-plan";
+import { updatePlanBookProcedure } from "./procedures/update-plan-book";
 
 export const lectioRouter = {
 	books: {

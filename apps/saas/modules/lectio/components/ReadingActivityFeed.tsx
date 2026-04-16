@@ -1,8 +1,8 @@
 "use client";
 
+import type { RecentLogsResponse } from "@lectio/hooks/use-lectio";
 import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import { formatReadingLogLabel } from "@lectio/lib/reading-log";
-import type { RecentLogsResponse } from "@lectio/hooks/use-lectio";
 import { Button, Card, cn } from "@repo/ui";
 import { Trash2Icon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
@@ -82,7 +82,7 @@ export function ReadingActivityFeed({
 
 	if (entries.length === 0) {
 		return (
-			<Card className="p-6 text-center text-sm text-muted-foreground">
+			<Card className="p-6 text-sm text-center text-muted-foreground">
 				{emptyMessage ?? t("empty")}
 			</Card>
 		);
@@ -110,11 +110,11 @@ export function ReadingActivityFeed({
 				return (
 					<li key={group.submissionId}>
 						<Card className={cn("p-3 border-l-4", tokens.border)}>
-							<div className="flex items-start justify-between gap-3">
-								<div className="flex min-w-0 items-start gap-2">
+							<div className="gap-3 flex items-start justify-between">
+								<div className="min-w-0 gap-2 flex items-start">
 									<span
 										className={cn(
-											"flex size-8 shrink-0 items-center justify-center rounded-md",
+											"size-8 flex shrink-0 items-center justify-center rounded-md",
 											tokens.soft,
 										)}
 									>
@@ -129,17 +129,14 @@ export function ReadingActivityFeed({
 											{showPlanLabel ? (
 												<>
 													{" · "}
-													<Link
-														href={`/plans/${group.planId}`}
-														className="hover:underline"
-													>
+													<Link href={`/plans/${group.planId}`} className="hover:underline">
 														{group.planTitle}
 													</Link>
 												</>
 											) : null}
 										</p>
 										{group.note ? (
-											<p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
+											<p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
 												{group.note}
 											</p>
 										) : null}

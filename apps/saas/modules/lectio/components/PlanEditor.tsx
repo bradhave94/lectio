@@ -3,15 +3,6 @@
 import { BookPickerPanel } from "@lectio/components/BookPickerPanel";
 import { PlanBuilderDndList } from "@lectio/components/PlanBuilderDndList";
 import {
-	colorTokens,
-	iconForKey,
-	PLAN_COLOR_KEYS,
-	PLAN_COLORS,
-	PLAN_ICON_KEYS,
-	type PlanColorKey,
-	type PlanIconKey,
-} from "@lectio/lib/constants";
-import {
 	useAddPlanBooksMutation,
 	usePlanBuilderQuery,
 	useRemovePlanBookMutation,
@@ -21,6 +12,15 @@ import {
 	type BuilderResponse,
 	type PlanBookRow,
 } from "@lectio/hooks/use-lectio";
+import {
+	colorTokens,
+	iconForKey,
+	PLAN_COLOR_KEYS,
+	PLAN_COLORS,
+	PLAN_ICON_KEYS,
+	type PlanColorKey,
+	type PlanIconKey,
+} from "@lectio/lib/constants";
 import {
 	Button,
 	Card,
@@ -40,11 +40,7 @@ import {
 } from "@repo/ui";
 import { toastError, toastSuccess } from "@repo/ui/components/toast";
 import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvider";
-import {
-	ArrowLeftIcon,
-	PencilIcon,
-	Trash2Icon,
-} from "lucide-react";
+import { ArrowLeftIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -179,28 +175,26 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex flex-wrap items-center justify-between gap-3">
+			<div className="gap-3 flex flex-wrap items-center justify-between">
 				<div className="space-y-2">
 					<Link
 						href={`/plans/${planId}`}
-						className="inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
+						className="text-sm inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
 					>
 						<ArrowLeftIcon className="mr-1 size-4" />
 						{t("editor.backToJournal")}
 					</Link>
-					<div className="flex items-center gap-2">
+					<div className="gap-2 flex items-center">
 						<span
 							className={cn(
-								"flex size-9 items-center justify-center rounded-md border",
+								"size-9 flex items-center justify-center rounded-md border",
 								tokens.border,
 								tokens.soft,
 							)}
 						>
 							<Icon className={cn("size-5", tokens.text)} />
 						</span>
-						<h1 className="text-2xl font-semibold">
-							{title.trim() || t("editor.titleFallback")}
-						</h1>
+						<h1 className="text-2xl font-semibold">{title.trim() || t("editor.titleFallback")}</h1>
 					</div>
 				</div>
 				<Button onClick={handleSavePlan} loading={updatePlan.isPending} disabled={!isDirty}>
@@ -208,7 +202,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 				</Button>
 			</div>
 
-			<div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+			<div className="gap-6 lg:grid-cols-[360px_minmax(0,1fr)] grid">
 				<BookPickerPanel
 					excludedBookIds={existingBookIds}
 					selectedBookIds={pendingBookIds}
@@ -245,7 +239,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 
 						<div className="space-y-2">
 							<Label>{t("editor.fields.color")}</Label>
-							<div className="flex flex-wrap gap-2">
+							<div className="gap-2 flex flex-wrap">
 								{PLAN_COLOR_KEYS.map((key) => {
 									const colorTok = PLAN_COLORS[key];
 									const selected = color === key;
@@ -255,7 +249,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 											type="button"
 											onClick={() => setColor(selected ? null : key)}
 											className={cn(
-												"flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors",
+												"gap-2 px-3 py-1.5 text-sm flex items-center rounded-full border transition-colors",
 												selected
 													? cn("border-primary", colorTok.soft)
 													: "border-border bg-background hover:bg-accent",
@@ -271,7 +265,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 
 						<div className="space-y-2">
 							<Label>{t("editor.fields.icon")}</Label>
-							<div className="flex flex-wrap gap-2">
+							<div className="gap-2 flex flex-wrap">
 								{PLAN_ICON_KEYS.map((key) => {
 									const ChipIcon = iconForKey(key);
 									const selected = icon === key;
@@ -281,7 +275,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 											type="button"
 											onClick={() => setIcon(selected ? null : key)}
 											className={cn(
-												"flex size-10 items-center justify-center rounded-md border transition-colors",
+												"size-10 flex items-center justify-center rounded-md border transition-colors",
 												selected
 													? "border-primary bg-primary/10"
 													: "border-border bg-background hover:bg-accent",
@@ -295,7 +289,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 							</div>
 						</div>
 
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div className="gap-3 sm:grid-cols-2 grid">
 							<div className="space-y-1.5">
 								<Label htmlFor="editor-start">{t("editor.fields.startDate")}</Label>
 								<Input
@@ -335,7 +329,7 @@ export function PlanEditor({ planId, initialData }: PlanEditorProps) {
 						</div>
 
 						{builder.planBooks.length === 0 ? (
-							<p className="rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+							<p className="px-4 py-8 text-sm rounded-md border border-dashed text-center text-muted-foreground">
 								{t("editor.booksEmpty")}
 							</p>
 						) : (
@@ -395,13 +389,13 @@ function PlanBookEditorRow({ planBook, index, onSaveScope, onRemove }: PlanBookE
 				});
 
 	return (
-		<div className="flex items-center justify-between gap-3">
+		<div className="gap-3 flex items-center justify-between">
 			<div className="min-w-0">
 				<p className="text-xs text-muted-foreground">#{index + 1}</p>
-				<p className="truncate font-medium">{planBook.book.name}</p>
+				<p className="font-medium truncate">{planBook.book.name}</p>
 				<p className="text-xs text-muted-foreground">{scopeLabel}</p>
 			</div>
-			<div className="flex items-center gap-1">
+			<div className="gap-1 flex items-center">
 				<Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
 					<PopoverTrigger asChild>
 						<Button type="button" variant="outline" size="sm">
@@ -410,7 +404,7 @@ function PlanBookEditorRow({ planBook, index, onSaveScope, onRemove }: PlanBookE
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent className="w-72 space-y-3" align="end">
-						<div className="flex items-center justify-between gap-2">
+						<div className="gap-2 flex items-center justify-between">
 							<Label htmlFor={`whole-${planBook.id}`} className="cursor-pointer">
 								{t("editor.scope.wholeBook")}
 							</Label>
@@ -426,18 +420,18 @@ function PlanBookEditorRow({ planBook, index, onSaveScope, onRemove }: PlanBookE
 							/>
 						</div>
 						{!scope.whole ? (
-							<div className="grid grid-cols-2 gap-2">
+							<div className="gap-2 grid grid-cols-2">
 								<div className="space-y-1">
 									<Label className="text-xs" htmlFor={`start-${planBook.id}`}>
 										{t("editor.scope.start")}
 									</Label>
 									<Select
 										value={scope.start}
-										onValueChange={(value) =>
-											setScope((current) => ({ ...current, start: value }))
-										}
+										onValueChange={(value) => setScope((current) => ({ ...current, start: value }))}
 									>
-										<SelectTrigger id={`start-${planBook.id}`} />
+										<SelectTrigger id={`start-${planBook.id}`}>
+											<SelectValue />
+										</SelectTrigger>
 										<SelectContent className="max-h-64">
 											{Array.from({ length: planBook.book.chapterCount }, (_, idx) => (
 												<SelectItem key={idx + 1} value={`${idx + 1}`}>
@@ -453,11 +447,11 @@ function PlanBookEditorRow({ planBook, index, onSaveScope, onRemove }: PlanBookE
 									</Label>
 									<Select
 										value={scope.end}
-										onValueChange={(value) =>
-											setScope((current) => ({ ...current, end: value }))
-										}
+										onValueChange={(value) => setScope((current) => ({ ...current, end: value }))}
 									>
-										<SelectTrigger id={`end-${planBook.id}`} />
+										<SelectTrigger id={`end-${planBook.id}`}>
+											<SelectValue />
+										</SelectTrigger>
 										<SelectContent className="max-h-64">
 											{Array.from({ length: planBook.book.chapterCount }, (_, idx) => (
 												<SelectItem key={idx + 1} value={`${idx + 1}`}>
@@ -469,7 +463,7 @@ function PlanBookEditorRow({ planBook, index, onSaveScope, onRemove }: PlanBookE
 								</div>
 							</div>
 						) : null}
-						<div className="flex justify-end gap-2 pt-1">
+						<div className="gap-2 pt-1 flex justify-end">
 							<Button
 								type="button"
 								variant="outline"
@@ -487,11 +481,7 @@ function PlanBookEditorRow({ planBook, index, onSaveScope, onRemove }: PlanBookE
 									} else {
 										const start = Number.parseInt(scope.start, 10);
 										const end = Number.parseInt(scope.end, 10);
-										if (
-											!Number.isInteger(start) ||
-											!Number.isInteger(end) ||
-											end < start
-										) {
+										if (!Number.isInteger(start) || !Number.isInteger(end) || end < start) {
 											return;
 										}
 										await onSaveScope({

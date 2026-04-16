@@ -1,9 +1,9 @@
 "use client";
 
-import { PlanComposerDialog } from "@lectio/components/PlanComposerDialog";
-import { PlanCard } from "@lectio/components/PlanCard";
-import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
 import { useLogReading } from "@lectio/components/LogReadingProvider";
+import { PlanCard } from "@lectio/components/PlanCard";
+import { PlanComposerDialog } from "@lectio/components/PlanComposerDialog";
+import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
 import {
 	useDeletePlanMutation,
 	useLectioPlansQuery,
@@ -74,12 +74,12 @@ export function LectioHome({
 
 	return (
 		<div className="space-y-8">
-			<div className="flex flex-wrap items-center justify-between gap-3">
+			<div className="gap-3 flex flex-wrap items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-semibold">{t("title")}</h1>
 					<p className="text-sm text-muted-foreground">{t("subtitle")}</p>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
+				<div className="gap-2 flex flex-wrap items-center">
 					<Button variant="outline" type="button" onClick={() => setComposerOpen(true)}>
 						<PlusIcon className="mr-1.5 size-4" />
 						{t("newPlan")}
@@ -94,8 +94,8 @@ export function LectioHome({
 			<PlanComposerDialog open={composerOpen} onOpenChange={setComposerOpen} />
 
 			{hasNoPlans ? (
-				<Card className="p-10 text-center space-y-3">
-					<SparklesIcon className="mx-auto size-8 text-muted-foreground" />
+				<Card className="p-10 space-y-3 text-center">
+					<SparklesIcon className="size-8 mx-auto text-muted-foreground" />
 					<div>
 						<p className="text-lg font-semibold">{t("emptyTitle")}</p>
 						<p className="mt-1 text-sm text-muted-foreground">{t("emptyDescription")}</p>
@@ -110,7 +110,7 @@ export function LectioHome({
 					{activePlans.length > 0 ? (
 						<section className="space-y-3">
 							<h2 className="font-semibold text-base">{t("plansTitle")}</h2>
-							<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+							<div className="gap-3 md:grid-cols-2 xl:grid-cols-3 grid">
 								{activePlans.map((plan) => (
 									<PlanCard
 										key={plan.id}
@@ -124,13 +124,13 @@ export function LectioHome({
 					) : null}
 
 					{archivedPlans.length > 0 ? (
-						<Accordion type="single" collapsible className="rounded-lg border bg-card px-4">
+						<Accordion type="single" collapsible className="px-4 rounded-lg border bg-card">
 							<AccordionItem value="archived" className="border-0">
 								<AccordionTrigger className="py-3 text-sm font-medium hover:no-underline">
 									{t("archivedTitle", { count: archivedPlans.length })}
 								</AccordionTrigger>
 								<AccordionContent>
-									<div className="grid gap-3 pb-2 md:grid-cols-2 xl:grid-cols-3">
+									<div className="gap-3 pb-2 md:grid-cols-2 xl:grid-cols-3 grid">
 										{archivedPlans.map((plan) => (
 											<PlanCard
 												key={plan.id}
@@ -147,7 +147,7 @@ export function LectioHome({
 					) : null}
 
 					<section className="space-y-3">
-						<div className="flex items-center justify-between gap-2">
+						<div className="gap-2 flex items-center justify-between">
 							<h2 className="font-semibold text-base">{t("recentTitle")}</h2>
 							<Button type="button" variant="ghost" size="sm" onClick={() => openLogReading()}>
 								<BookOpenIcon className="mr-1.5 size-4" />

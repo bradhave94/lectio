@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "../client";
 import { bookChapters, books, planBooks, plans, readingLogs } from "../schema/postgres";
@@ -234,11 +234,7 @@ export interface UpdatePlanChanges {
 	archivedAt?: Date | null;
 }
 
-export async function updatePlan(
-	planId: string,
-	userId: string,
-	changes: UpdatePlanChanges,
-) {
+export async function updatePlan(planId: string, userId: string, changes: UpdatePlanChanges) {
 	const patch: Record<string, unknown> = { updatedAt: new Date() };
 	if (changes.title !== undefined) patch.title = changes.title;
 	if (changes.description !== undefined) patch.description = changes.description;
@@ -419,10 +415,7 @@ export async function updatePlanBook(planBookId: string, changes: UpdatePlanBook
 }
 
 export async function removePlanBook(planBookId: string) {
-	const [deleted] = await db
-		.delete(planBooks)
-		.where(eq(planBooks.id, planBookId))
-		.returning();
+	const [deleted] = await db.delete(planBooks).where(eq(planBooks.id, planBookId)).returning();
 
 	return deleted ?? null;
 }
@@ -524,10 +517,7 @@ export async function getReadingLogById(logId: string) {
 }
 
 export async function deleteReadingLog(logId: string) {
-	const [deleted] = await db
-		.delete(readingLogs)
-		.where(eq(readingLogs.id, logId))
-		.returning();
+	const [deleted] = await db.delete(readingLogs).where(eq(readingLogs.id, logId)).returning();
 
 	return deleted ?? null;
 }
@@ -625,7 +615,7 @@ export async function recomputePlanBookStatus(planBookId: string) {
 		patch.completedAt = null;
 	} else {
 		patch.startedAt = planBook.startedAt ?? now;
-		patch.completedAt = nextStatus === "completed" ? planBook.completedAt ?? now : null;
+		patch.completedAt = nextStatus === "completed" ? (planBook.completedAt ?? now) : null;
 	}
 
 	if (

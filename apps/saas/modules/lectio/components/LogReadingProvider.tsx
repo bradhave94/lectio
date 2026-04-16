@@ -19,13 +19,10 @@ export function LogReadingProvider({ children }: LogReadingProviderProps) {
 	const [open, setOpen] = useState(false);
 	const [defaults, setDefaults] = useState<{ planId?: string; planBookId?: string }>({});
 
-	const openLogReading = useCallback(
-		(options?: { planId?: string; planBookId?: string }) => {
-			setDefaults({ planId: options?.planId, planBookId: options?.planBookId });
-			setOpen(true);
-		},
-		[],
-	);
+	const openLogReading = useCallback((options?: { planId?: string; planBookId?: string }) => {
+		setDefaults({ planId: options?.planId, planBookId: options?.planBookId });
+		setOpen(true);
+	}, []);
 
 	const closeLogReading = useCallback(() => {
 		setOpen(false);

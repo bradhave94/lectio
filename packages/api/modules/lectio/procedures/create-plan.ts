@@ -1,8 +1,8 @@
 import { addBooksToPlan, createPlan as createPlanFn } from "@repo/database";
 import { z } from "zod";
 
-import { planColorSchema, planDateSchema, planIconSchema } from "../lib/schemas";
 import { protectedProcedure } from "../../../orpc/procedures";
+import { planColorSchema, planDateSchema, planIconSchema } from "../lib/schemas";
 
 export const createPlanProcedure = protectedProcedure
 	.route({

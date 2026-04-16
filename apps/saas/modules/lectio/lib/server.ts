@@ -66,20 +66,18 @@ export const getPlanBuilder = cache(async (planId: string): Promise<BuilderPageD
 	});
 });
 
-export const loadUserRecentReadingLogs = cache(
-	async (limit = 30): Promise<DashboardRecentLogs> => {
-		const session = await getSession();
-		if (!session) {
-			throw new ORPCError("UNAUTHORIZED");
-		}
+export const loadUserRecentReadingLogs = cache(async (limit = 30): Promise<DashboardRecentLogs> => {
+	const session = await getSession();
+	if (!session) {
+		throw new ORPCError("UNAUTHORIZED");
+	}
 
-		const callable = listRecentUserLogsProcedure.callable({
-			context: { headers: await headers() },
-		});
+	const callable = listRecentUserLogsProcedure.callable({
+		context: { headers: await headers() },
+	});
 
-		return callable({ limit });
-	},
-);
+	return callable({ limit });
+});
 
 export const loadPlanRecentReadingLogs = cache(
 	async (planId: string, limit = 50): Promise<PlanRecentLogs> => {

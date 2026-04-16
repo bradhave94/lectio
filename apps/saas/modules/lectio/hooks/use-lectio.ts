@@ -9,9 +9,7 @@ export type PlansListResponse = Awaited<ReturnType<typeof orpc.lectio.plans.list
 export type BuilderResponse = Awaited<ReturnType<typeof orpc.lectio.plans.builder.call>>;
 export type ReadingLogsResponse = Awaited<ReturnType<typeof orpc.lectio.readingLogs.list.call>>;
 export type RecentLogsResponse = Awaited<ReturnType<typeof orpc.lectio.readingLogs.recent.call>>;
-export type PlanRecentLogsResponse = Awaited<
-	ReturnType<typeof orpc.lectio.plans.recentLogs.call>
->;
+export type PlanRecentLogsResponse = Awaited<ReturnType<typeof orpc.lectio.plans.recentLogs.call>>;
 export type VerseOfDayResponse = Awaited<ReturnType<typeof orpc.lectio.verseOfDay.get.call>>;
 export type BooksResponse = Awaited<ReturnType<typeof orpc.lectio.books.list.call>>;
 export type PlanBookRow = BuilderResponse["planBooks"][number];
@@ -64,10 +62,7 @@ export function useLectioVerseOfDayQuery(initialData?: VerseOfDayResponse) {
 	});
 }
 
-export function useUserRecentReadingLogsQuery(
-	initialData?: RecentLogsResponse,
-	limit = 50,
-) {
+export function useUserRecentReadingLogsQuery(initialData?: RecentLogsResponse, limit = 50) {
 	return useQuery({
 		...orpc.lectio.readingLogs.recent.queryOptions({
 			input: { limit },
@@ -196,24 +191,20 @@ export function useUpdatePlanMutation(planId: string) {
 								variables.description !== undefined
 									? variables.description
 									: draft.plan.description,
-							color:
-								variables.color !== undefined ? variables.color : draft.plan.color,
+							color: variables.color !== undefined ? variables.color : draft.plan.color,
 							icon: variables.icon !== undefined ? variables.icon : draft.plan.icon,
 							startDate:
-								variables.startDate !== undefined
-									? variables.startDate
-									: draft.plan.startDate,
+								variables.startDate !== undefined ? variables.startDate : draft.plan.startDate,
 							targetEndDate:
 								variables.targetEndDate !== undefined
 									? variables.targetEndDate
 									: draft.plan.targetEndDate,
-							cadence:
-								variables.cadence !== undefined ? variables.cadence : draft.plan.cadence,
+							cadence: variables.cadence !== undefined ? variables.cadence : draft.plan.cadence,
 							archivedAt:
 								variables.archived === undefined
 									? draft.plan.archivedAt
 									: variables.archived
-										? draft.plan.archivedAt ?? new Date()
+										? (draft.plan.archivedAt ?? new Date())
 										: null,
 						},
 					})),

@@ -76,14 +76,7 @@ export const PlanBookUpdateSchema = createUpdateSchema(planBooks, {
 });
 export type PlanBook = typeof planBooks.$inferSelect;
 
-export const PLAN_COLOR_VALUES = [
-	"emerald",
-	"sky",
-	"violet",
-	"amber",
-	"rose",
-	"slate",
-] as const;
+export const PLAN_COLOR_VALUES = ["emerald", "sky", "violet", "amber", "rose", "slate"] as const;
 export type PlanColor = (typeof PLAN_COLOR_VALUES)[number];
 
 export const PLAN_ICON_VALUES = [

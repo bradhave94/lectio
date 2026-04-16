@@ -1,9 +1,5 @@
 import { ORPCError } from "@orpc/client";
-import {
-	getUserPlanById,
-	listPlanBookIdsInOrder,
-	reorderPlanBooks,
-} from "@repo/database";
+import { getUserPlanById, listPlanBookIdsInOrder, reorderPlanBooks } from "@repo/database";
 import { z } from "zod";
 
 import { protectedProcedure } from "../../../orpc/procedures";
@@ -37,7 +33,8 @@ export const reorderPlanBooksProcedure = protectedProcedure
 
 		const currentSet = new Set(currentIds);
 		const incomingSet = new Set(uniqueIncoming);
-		const hasMismatch = currentSet.size !== incomingSet.size || currentIds.some((id) => !incomingSet.has(id));
+		const hasMismatch =
+			currentSet.size !== incomingSet.size || currentIds.some((id) => !incomingSet.has(id));
 
 		if (hasMismatch) {
 			throw new ORPCError("BAD_REQUEST");

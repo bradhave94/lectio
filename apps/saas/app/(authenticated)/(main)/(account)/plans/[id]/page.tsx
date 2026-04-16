@@ -36,10 +36,6 @@ export default async function PlanJournalRoute({ params }: PlanRouteProps) {
 	}
 
 	return (
-		<PlanJournalView
-			planId={id}
-			initialBuilder={builderData}
-			initialRecentLogs={recentLogs}
-		/>
+		<PlanJournalView planId={id} initialBuilder={builderData} initialRecentLogs={recentLogs} />
 	);
 }

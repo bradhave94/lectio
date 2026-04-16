@@ -22,7 +22,7 @@ export function VerseOfDayBanner({ verseOfDay }: VerseOfDayBannerProps) {
 
 	return (
 		<Card className="p-5">
-			<div className="flex flex-wrap items-start justify-between gap-3">
+			<div className="gap-3 flex flex-wrap items-start justify-between">
 				<div>
 					<p className="text-sm font-medium text-muted-foreground">{t("title")}</p>
 					<p className="mt-1 text-lg font-semibold">
@@ -33,7 +33,7 @@ export function VerseOfDayBanner({ verseOfDay }: VerseOfDayBannerProps) {
 					href={verseOfDay.bibleDotComUrl}
 					target="_blank"
 					rel="noreferrer"
-					className="inline-flex items-center text-sm text-primary hover:underline"
+					className="text-sm inline-flex items-center text-primary hover:underline"
 				>
 					{t("openBibleCom")}
 					<ExternalLinkIcon className="ml-1 size-4" />
