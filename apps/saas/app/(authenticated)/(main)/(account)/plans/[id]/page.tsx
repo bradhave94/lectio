@@ -1,22 +1,22 @@
 import { getSession } from "@auth/lib/server";
-import { PlanBuilderPage } from "@lectio/components/PlanBuilderPage";
-import { getPlanBuilder } from "@lectio/lib/server";
+import { PlanReadView } from "@lectio/components/PlanReadView";
+import { getPlanBuilder, getPlanProgress } from "@lectio/lib/server";
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 
-interface PlanBuilderRouteProps {
+interface PlanReadRouteProps {
 	params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata() {
-	const t = await getTranslations("lectio.builder");
+	const t = await getTranslations("lectio.read");
 
 	return {
 		title: t("titleFallback"),
 	};
 }
 
-export default async function PlanBuilderRoute({ params }: PlanBuilderRouteProps) {
+export default async function PlanReadRoute({ params }: PlanReadRouteProps) {
 	const session = await getSession();
 	if (!session) {
 		redirect("/login");
@@ -27,10 +27,12 @@ export default async function PlanBuilderRoute({ params }: PlanBuilderRouteProps
 		notFound();
 	}
 
-	const builderData = await getPlanBuilder(id);
-	if (!builderData) {
+	const [progressData, builderData] = await Promise.all([getPlanProgress(id), getPlanBuilder(id)]);
+	if (!progressData || !builderData) {
 		notFound();
 	}
 
-	return <PlanBuilderPage planId={id} initialBuilderData={builderData} />;
+	return (
+		<PlanReadView planId={id} initialProgress={progressData} initialBuilder={builderData} />
+	);
 }

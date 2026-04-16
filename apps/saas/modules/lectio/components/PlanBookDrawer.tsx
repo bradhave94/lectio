@@ -52,6 +52,8 @@ interface PlanBookDrawerProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	planBook: PlanBookRow | null;
+	/** "log" hides plan-editing sections and shows only reading log capture (plus Bible.com). */
+	variant?: "full" | "log";
 }
 
 function getTodayDateString() {
@@ -77,7 +79,13 @@ function toOptionalPositiveInt(value: string) {
 	return number;
 }
 
-export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBookDrawerProps) {
+export function PlanBookDrawer({
+	planId,
+	open,
+	onOpenChange,
+	planBook,
+	variant = "full",
+}: PlanBookDrawerProps) {
 	const t = useTranslations("lectio");
 	const { confirm } = useConfirmationAlert();
 	const updateMutation = useUpdatePlanBookMutation(planId);
@@ -85,6 +93,7 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 	const createLogMutation = useCreateReadingLogMutation(planId);
 	const deleteLogMutation = useDeleteReadingLogMutation(planId, planBook?.id ?? "");
 	const { data: logs = [] } = useReadingLogsQuery(planId, planBook?.id ?? "");
+	const isLogOnly = variant === "log";
 	const { data: chaptersData } = useBookChaptersQuery(planBook?.bookId ?? null);
 	const chapters = chaptersData?.chapters ?? [];
 
@@ -231,13 +240,16 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 				<SheetHeader className="gap-1 border-b px-6 py-4">
 					<SheetTitle className="text-xl">{planBook.book.name}</SheetTitle>
 					<SheetDescription>
-						{t("builder.drawer.subtitle", {
-							position: planBook.orderIndex + 1,
-						})}
+						{isLogOnly
+							? t("builder.drawer.logVariantSubtitle")
+							: t("builder.drawer.subtitle", {
+									position: planBook.orderIndex + 1,
+								})}
 					</SheetDescription>
 				</SheetHeader>
 
 				<div className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-5">
+					{!isLogOnly ? (
 					<section className="space-y-4">
 						<div className="flex items-center justify-between">
 							<h3 className="font-semibold text-base">{t("builder.drawer.resource.title")}</h3>
@@ -303,7 +315,9 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 							</div>
 						</div>
 					</section>
+					) : null}
 
+					{!isLogOnly ? (
 					<section className="space-y-4">
 						<h3 className="font-semibold text-base">{t("builder.drawer.status.title")}</h3>
 						<div className="space-y-2">
@@ -324,7 +338,9 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 							</div>
 						</div>
 					</section>
+					) : null}
 
+					{!isLogOnly ? (
 					<section className="space-y-3">
 						<h3 className="font-semibold text-base">{t("builder.drawer.notes.title")}</h3>
 						<Textarea
@@ -334,6 +350,7 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 							rows={5}
 						/>
 					</section>
+					) : null}
 
 					<section className="space-y-4">
 						<div className="flex items-center justify-between">
@@ -513,17 +530,10 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 					</section>
 				</div>
 
-				<SheetFooter className="mt-auto border-t px-6 py-4 sm:justify-between sm:space-x-0">
-					<Button
-						type="button"
-						variant="destructive"
-						onClick={handleRemoveFromPlan}
-						loading={removeMutation.isPending}
-					>
-						{t("builder.drawer.remove.action")}
-					</Button>
-
-					<div className="flex items-center gap-2">
+				<SheetFooter
+					className={`mt-auto border-t px-6 py-4 sm:space-x-0 ${isLogOnly ? "sm:justify-end" : "sm:justify-between"}`}
+				>
+					{isLogOnly ? (
 						<Button variant="outline" asChild>
 							<a
 								href={`https://www.bible.com/bible/3034/${planBook.book.usfmCode}.1`}
@@ -533,15 +543,38 @@ export function PlanBookDrawer({ planId, open, onOpenChange, planBook }: PlanBoo
 								{t("builder.drawer.readOnBibleCom")}
 							</a>
 						</Button>
-						<Button
-							type="button"
-							onClick={handleSaveMetadata}
-							disabled={!hasUnsavedMetaChanges}
-							loading={updateMutation.isPending}
-						>
-							{t("builder.drawer.save")}
-						</Button>
-					</div>
+					) : (
+						<>
+							<Button
+								type="button"
+								variant="destructive"
+								onClick={handleRemoveFromPlan}
+								loading={removeMutation.isPending}
+							>
+								{t("builder.drawer.remove.action")}
+							</Button>
+
+							<div className="flex items-center gap-2">
+								<Button variant="outline" asChild>
+									<a
+										href={`https://www.bible.com/bible/3034/${planBook.book.usfmCode}.1`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{t("builder.drawer.readOnBibleCom")}
+									</a>
+								</Button>
+								<Button
+									type="button"
+									onClick={handleSaveMetadata}
+									disabled={!hasUnsavedMetaChanges}
+									loading={updateMutation.isPending}
+								>
+									{t("builder.drawer.save")}
+								</Button>
+							</div>
+						</>
+					)}
 				</SheetFooter>
 			</SheetContent>
 		</Sheet>

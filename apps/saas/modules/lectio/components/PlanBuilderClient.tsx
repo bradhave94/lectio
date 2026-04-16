@@ -150,7 +150,10 @@ export function PlanBuilderClient({ planId, initialData }: PlanBuilderClientProp
 							))}
 						</div>
 
-						<div className="flex justify-end">
+						<div className="flex flex-wrap justify-end gap-2">
+							<Button asChild variant="outline">
+								<Link href={`/plans/${planId}`}>{t("builder.backToReading")}</Link>
+							</Button>
 							<Button asChild variant="outline">
 								<Link href={`/plans/${planId}/progress`}>
 									{t("builder.progress.openProgressView")}
