@@ -23,15 +23,25 @@ export const notificationTypeEnum = pgEnum("NotificationType", ["WELCOME", "APP_
 export const notificationTargetEnum = pgEnum("NotificationTarget", ["IN_APP", "EMAIL"]);
 
 export const testamentValues = ["OT", "NT"] as const;
-export const planBookResourceTypeValues = [
-	"reading_plan",
-	"video",
-	"podcast",
-	"book",
-	"article",
-	"other",
-] as const;
 export const planBookStatusValues = ["not_started", "in_progress", "completed"] as const;
+export const planColorValues = [
+	"emerald",
+	"sky",
+	"violet",
+	"amber",
+	"rose",
+	"slate",
+] as const;
+export const planIconValues = [
+	"BookOpen",
+	"Sparkles",
+	"Sun",
+	"Flame",
+	"Mountain",
+	"Leaf",
+	"Compass",
+	"Heart",
+] as const;
 
 export const user = pgTable("user", {
 	id: text("id")
@@ -336,10 +346,19 @@ export const plans = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		title: text("title").notNull(),
 		description: text("description"),
+		color: text("color"),
+		icon: text("icon"),
+		startDate: date("start_date"),
+		targetEndDate: date("target_end_date"),
+		cadence: text("cadence"),
+		archivedAt: timestamp("archived_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
-	(table) => [index("plans_user_id_idx").on(table.userId)],
+	(table) => [
+		index("plans_user_id_idx").on(table.userId),
+		index("plans_user_archived_idx").on(table.userId, table.archivedAt),
+	],
 );
 
 export const planBooks = pgTable(
@@ -353,11 +372,14 @@ export const planBooks = pgTable(
 			.notNull()
 			.references(() => books.id),
 		orderIndex: integer("order_index").notNull(),
+		chapterStart: integer("chapter_start"),
+		chapterEnd: integer("chapter_end"),
 		resourceUrl: text("resource_url"),
 		resourceLabel: text("resource_label"),
 		resourceType: text("resource_type"),
 		notes: text("notes"),
 		status: text("status").notNull().default("not_started"),
+		statusManual: boolean("status_manual").notNull().default(false),
 		startedAt: timestamp("started_at", { withTimezone: true }),
 		completedAt: timestamp("completed_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -375,6 +397,10 @@ export const planBooks = pgTable(
 			"plan_books_status_check",
 			sql`${table.status} IN ('not_started', 'in_progress', 'completed')`,
 		),
+		check(
+			"plan_books_chapter_scope_check",
+			sql`(${table.chapterStart} IS NULL AND ${table.chapterEnd} IS NULL) OR (${table.chapterStart} IS NOT NULL AND ${table.chapterEnd} IS NOT NULL AND ${table.chapterStart} >= 1 AND ${table.chapterEnd} >= ${table.chapterStart})`,
+		),
 	],
 );
 
@@ -385,6 +411,7 @@ export const readingLogs = pgTable(
 		planBookId: uuid("plan_book_id")
 			.notNull()
 			.references(() => planBooks.id, { onDelete: "cascade" }),
+		submissionId: uuid("submission_id"),
 		chapterStart: integer("chapter_start").notNull(),
 		chapterEnd: integer("chapter_end").notNull(),
 		verseStart: integer("verse_start"),
@@ -396,6 +423,7 @@ export const readingLogs = pgTable(
 	(table) => [
 		index("reading_logs_plan_book_idx").on(table.planBookId),
 		index("reading_logs_plan_book_logged_at_idx").on(table.planBookId, table.loggedAt),
+		index("reading_logs_submission_id_idx").on(table.submissionId),
 		check("reading_logs_chapter_range_check", sql`${table.chapterEnd} >= ${table.chapterStart}`),
 		check(
 			"reading_logs_verse_range_check",
