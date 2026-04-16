@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	dedupeChapterRanges,
+	expandChapterRanges,
+	formatChapterRanges,
 	formatReadingLogDisplay,
+	parseChapterRanges,
 	validateReadingLogInput,
 } from "./reading-log";
 
@@ -83,5 +87,66 @@ describe("validateReadingLogInput", () => {
 			isValid: false,
 			reason: "Verse range exceeds chapter verse count (31).",
 		});
+	});
+});
+
+describe("parseChapterRanges", () => {
+	it("parses an empty string as an empty list", () => {
+		expect(parseChapterRanges("")).toEqual([]);
+		expect(parseChapterRanges("   ")).toEqual([]);
+	});
+
+	it("parses a list of single chapters", () => {
+		expect(parseChapterRanges("1, 3, 27")).toEqual([
+			{ start: 1, end: 1 },
+			{ start: 3, end: 3 },
+			{ start: 27, end: 27 },
+		]);
+	});
+
+	it("parses ranges with both ASCII and en-dash separators", () => {
+		expect(parseChapterRanges("1-3, 5–7, 9")).toEqual([
+			{ start: 1, end: 3 },
+			{ start: 5, end: 7 },
+			{ start: 9, end: 9 },
+		]);
+	});
+
+	it("merges overlapping ranges", () => {
+		expect(parseChapterRanges("1, 2, 3, 4, 5")).toEqual([{ start: 1, end: 5 }]);
+		expect(parseChapterRanges("3-5, 4-6")).toEqual([{ start: 3, end: 6 }]);
+	});
+
+	it("returns null for malformed input", () => {
+		expect(parseChapterRanges("abc")).toBeNull();
+		expect(parseChapterRanges("1-")).toBeNull();
+		expect(parseChapterRanges("5-3")).toBeNull();
+		expect(parseChapterRanges("0")).toBeNull();
+	});
+});
+
+describe("expandChapterRanges", () => {
+	it("flattens to sorted unique chapter numbers", () => {
+		expect(
+			expandChapterRanges([
+				{ start: 1, end: 3 },
+				{ start: 2, end: 5 },
+			]),
+		).toEqual([1, 2, 3, 4, 5]);
+	});
+});
+
+describe("dedupeChapterRanges + formatChapterRanges", () => {
+	it("merges adjacent ranges and formats them", () => {
+		const ranges = dedupeChapterRanges([
+			{ start: 1, end: 1 },
+			{ start: 2, end: 3 },
+			{ start: 7, end: 7 },
+		]);
+		expect(ranges).toEqual([
+			{ start: 1, end: 3 },
+			{ start: 7, end: 7 },
+		]);
+		expect(formatChapterRanges(ranges)).toBe("1–3, 7");
 	});
 });

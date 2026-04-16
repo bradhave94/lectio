@@ -40,6 +40,98 @@ export function formatReadingLogDisplay(input: ReadingLogDisplayInput): string {
 	return `${input.bookName} ${input.chapterStart}:${input.verseStart}–${input.chapterEnd}:${input.verseEnd}`;
 }
 
+export interface ChapterRange {
+	start: number;
+	end: number;
+}
+
+/**
+ * Parses a free-form chapter expression (e.g. `"1, 3, 5-7, 9"`) into a sorted,
+ * de-duplicated list of inclusive chapter ranges. Returns `null` when the
+ * input is malformed.
+ */
+export function parseChapterRanges(input: string): ChapterRange[] | null {
+	const trimmed = input.trim();
+	if (!trimmed) {
+		return [];
+	}
+
+	const tokens = trimmed
+		.split(/[,\s]+/)
+		.map((token) => token.trim())
+		.filter(Boolean);
+
+	const ranges: ChapterRange[] = [];
+
+	for (const token of tokens) {
+		const rangeMatch = token.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+		if (rangeMatch) {
+			const start = Number.parseInt(rangeMatch[1], 10);
+			const end = Number.parseInt(rangeMatch[2], 10);
+			if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start) {
+				return null;
+			}
+			ranges.push({ start, end });
+			continue;
+		}
+
+		const singleMatch = token.match(/^\d+$/);
+		if (!singleMatch) {
+			return null;
+		}
+		const chapter = Number.parseInt(token, 10);
+		if (!Number.isInteger(chapter) || chapter < 1) {
+			return null;
+		}
+		ranges.push({ start: chapter, end: chapter });
+	}
+
+	return dedupeChapterRanges(ranges);
+}
+
+/**
+ * Flattens a list of chapter ranges into a sorted, de-duplicated list of
+ * chapter numbers.
+ */
+export function expandChapterRanges(ranges: ChapterRange[]): number[] {
+	const set = new Set<number>();
+	for (const range of ranges) {
+		for (let ch = range.start; ch <= range.end; ch += 1) {
+			set.add(ch);
+		}
+	}
+	return Array.from(set).sort((left, right) => left - right);
+}
+
+/**
+ * Merges adjacent/overlapping chapter ranges.
+ */
+export function dedupeChapterRanges(ranges: ChapterRange[]): ChapterRange[] {
+	if (ranges.length === 0) {
+		return [];
+	}
+
+	const sorted = ranges.slice().sort((a, b) => a.start - b.start || a.end - b.end);
+	const merged: ChapterRange[] = [];
+	for (const range of sorted) {
+		const last = merged[merged.length - 1];
+		if (last && range.start <= last.end + 1) {
+			last.end = Math.max(last.end, range.end);
+			continue;
+		}
+		merged.push({ start: range.start, end: range.end });
+	}
+
+	return merged;
+}
+
+export function formatChapterRanges(ranges: ChapterRange[]): string {
+	const normalized = dedupeChapterRanges(ranges);
+	return normalized
+		.map((range) => (range.start === range.end ? `${range.start}` : `${range.start}–${range.end}`))
+		.join(", ");
+}
+
 export function validateReadingLogInput(
 	input: ValidateReadingLogInput,
 ): ValidateReadingLogResult {
