@@ -49,7 +49,7 @@
 		"input-otp": "catalog:",
 		"js-cookie": "catalog:",
 		"lucide-react": "catalog:",
-		"next": "^16.2.3",
+		"next": "^16.2.4",
 		"next-intl": "catalog:",
 		"next-themes": "catalog:",
 		"nprogress": "catalog:",
