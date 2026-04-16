@@ -15,7 +15,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button, cn } from "@repo/ui";
+import { cn } from "@repo/ui";
 import { GripVerticalIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -26,21 +26,16 @@ interface SortableItem {
 interface PlanBuilderDndListProps<T extends SortableItem> {
 	items: T[];
 	onReorder: (orderedIds: string[]) => void;
-	onSelectItem: (itemId: string) => void;
 	renderItem: (item: T, index: number) => ReactNode;
 	disabled?: boolean;
 }
 
 function SortableRow({
 	id,
-	index,
-	onSelect,
 	disabled,
 	children,
 }: {
 	id: string;
-	index: number;
-	onSelect: () => void;
 	disabled?: boolean;
 	children: ReactNode;
 }) {
@@ -58,36 +53,22 @@ function SortableRow({
 				transition,
 			}}
 			className={cn(
-				"rounded-xl border bg-card p-3 transition-shadow",
+				"rounded-lg border bg-card p-3 transition-shadow",
 				isDragging && "opacity-70 shadow-lg",
 			)}
 		>
-			<div className="flex items-start gap-3">
-				<Button
+			<div className="flex items-start gap-2">
+				<button
 					type="button"
-					variant="ghost"
-					size="icon"
-					className="mt-0.5 size-8 shrink-0 cursor-grab active:cursor-grabbing"
+					className="mt-0.5 flex h-8 w-8 cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent active:cursor-grabbing"
 					aria-label="Reorder"
 					disabled={disabled}
 					{...attributes}
 					{...listeners}
 				>
-					<GripVerticalIcon className="size-4 text-muted-foreground" />
-				</Button>
-				<div className="min-w-0 flex-1">
-					<button
-						type="button"
-						onClick={onSelect}
-						className="w-full text-left"
-						disabled={disabled}
-					>
-						<div className="mb-2 text-xs font-semibold text-muted-foreground">
-							#{index + 1}
-						</div>
-						{children}
-					</button>
-				</div>
+					<GripVerticalIcon className="size-4" />
+				</button>
+				<div className="min-w-0 flex-1">{children}</div>
 			</div>
 		</div>
 	);
@@ -96,7 +77,6 @@ function SortableRow({
 export function PlanBuilderDndList<T extends SortableItem>({
 	items,
 	onReorder,
-	onSelectItem,
 	renderItem,
 	disabled,
 }: PlanBuilderDndListProps<T>) {
@@ -127,21 +107,11 @@ export function PlanBuilderDndList<T extends SortableItem>({
 	};
 
 	return (
-		<DndContext
-			sensors={sensors}
-			collisionDetection={closestCenter}
-			onDragEnd={handleDragEnd}
-		>
+		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 			<SortableContext items={orderedIds} strategy={verticalListSortingStrategy}>
 				<div className="flex flex-col gap-2">
 					{items.map((item, index) => (
-						<SortableRow
-							key={item.id}
-							id={item.id}
-							index={index}
-							onSelect={() => onSelectItem(item.id)}
-							disabled={disabled}
-						>
+						<SortableRow key={item.id} id={item.id} disabled={disabled}>
 							{renderItem(item, index)}
 						</SortableRow>
 					))}

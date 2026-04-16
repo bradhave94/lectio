@@ -1,6 +1,6 @@
 import { getSession } from "@auth/lib/server";
-import { MyPlansDashboard } from "@lectio/components/MyPlansDashboard";
-import { listPlans, loadVerseOfDay } from "@lectio/lib/server";
+import { LectioHome } from "@lectio/components/LectioHome";
+import { listPlans, loadUserRecentReadingLogs } from "@lectio/lib/server";
 import { redirect } from "next/navigation";
 
 export default async function AppStartPage() {
@@ -10,12 +10,17 @@ export default async function AppStartPage() {
 		redirect("/login");
 	}
 
-	const [plans, verseOfDay] = await Promise.all([listPlans(), loadVerseOfDay()]);
+	const [activePlans, allPlans, recentLogs] = await Promise.all([
+		listPlans(),
+		listPlans({ includeArchived: true }),
+		loadUserRecentReadingLogs(50),
+	]);
 
 	return (
-		<MyPlansDashboard
-			initialPlans={plans}
-			verseOfDay={verseOfDay}
+		<LectioHome
+			initialPlans={activePlans}
+			initialArchivedPlans={allPlans}
+			initialRecentLogs={recentLogs}
 		/>
 	);
 }
