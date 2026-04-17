@@ -867,7 +867,10 @@
 				"moveTitle": "Move to a different plan or book",
 				"moveHint": "Changing the plan resets the book selection.",
 				"missingChapters": "Pick at least one chapter to keep.",
-				"noBooks": "This plan has no books yet — add one before moving entries here."
+				"noBooks": "This plan has no books yet — add one before moving entries here.",
+				"passage": "Passage",
+				"edit": "Edit entry",
+				"noteEmpty": "No notes for this entry yet."
 			}
 		},
 		"fab": {

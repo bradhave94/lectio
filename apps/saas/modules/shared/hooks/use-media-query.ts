@@ -27,3 +27,8 @@ export function useMediaQuery(query: string): boolean {
 export function useIsMobile(): boolean {
 	return useMediaQuery("(max-width: 767px)");
 }
+
+/** Returns true when viewport is below the lg breakpoint (1024px). */
+export function useIsBelowLg(): boolean {
+	return useMediaQuery("(max-width: 1023px)");
+}

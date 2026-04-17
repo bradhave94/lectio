@@ -37,6 +37,7 @@ import {
 } from "@repo/ui";
 import { toastError, toastSuccess } from "@repo/ui/components/toast";
 import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvider";
+import { useIsBelowLg } from "@shared/hooks/use-media-query";
 import {
 	ArrowDownNarrowWideIcon,
 	ArrowUpNarrowWideIcon,
@@ -44,12 +45,15 @@ import {
 	CalendarIcon,
 	CheckIcon,
 	FilterIcon,
+	PencilIcon,
 	SearchIcon,
 	Trash2Icon,
 	XIcon,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+
+import { NoteMarkdown } from "./NoteMarkdown";
 
 interface JournalViewProps {
 	initialPlans: PlansListResponse;
@@ -121,6 +125,7 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+	const isBelowLg = useIsBelowLg();
 
 	const filteredEntries = useMemo(() => {
 		const fromTs = dateRange.from ? new Date(dateRange.from).getTime() : null;
@@ -214,7 +219,13 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 
 	const handleSelect = (id: string) => {
 		setSelectedId(id);
-		setMobileSheetOpen(true);
+		// Only open the mobile sheet on small screens. On lg+ the inspector is
+		// rendered inline as the right column, so spawning a Sheet would only
+		// trigger a phantom overlay (radix portals the overlay regardless of
+		// CSS visibility).
+		if (isBelowLg) {
+			setMobileSheetOpen(true);
+		}
 	};
 
 	return (
@@ -400,38 +411,34 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 				</Card>
 			</div>
 
-			{/* Mobile inspector sheet */}
-			<Sheet
-				open={mobileSheetOpen && selectedEntry !== null}
-				onOpenChange={(next) => {
-					setMobileSheetOpen(next);
-					if (!next) {
-						// Keep the selection so the user can come back; just close.
-					}
-				}}
-			>
-				<SheetContent side="right" className="lg:hidden p-0 sm:max-w-[520px] w-full flex flex-col">
-					<SheetHeader className="px-4 py-3 border-b">
-						<SheetTitle>{t("inspectorHeader")}</SheetTitle>
-						<SheetDescription className="sr-only">{t("inspectorHeader")}</SheetDescription>
-					</SheetHeader>
-					<div className="flex-1 overflow-y-auto">
-						{selectedEntry ? (
-							<JournalInspector
-								key={selectedEntry.id}
-								entry={selectedEntry}
-								plans={plans}
-								onAfterDelete={() => {
-									setMobileSheetOpen(false);
-									setSelectedId(null);
-								}}
-								toastSaved={() => toastSuccess(tToast("saved"))}
-								toastError={() => toastError(tToast("saveError"))}
-							/>
-						) : null}
-					</div>
-				</SheetContent>
-			</Sheet>
+			{/* Mobile inspector sheet — only mount when actually below the lg
+			breakpoint. Mounting unconditionally with `lg:hidden` still spawns
+			the radix overlay and blurs the desktop view. */}
+			{isBelowLg ? (
+				<Sheet open={mobileSheetOpen && selectedEntry !== null} onOpenChange={setMobileSheetOpen}>
+					<SheetContent side="right" className="p-0 sm:max-w-[520px] w-full flex flex-col">
+						<SheetHeader className="px-4 py-3 border-b">
+							<SheetTitle>{t("inspectorHeader")}</SheetTitle>
+							<SheetDescription className="sr-only">{t("inspectorHeader")}</SheetDescription>
+						</SheetHeader>
+						<div className="flex-1 overflow-y-auto">
+							{selectedEntry ? (
+								<JournalInspector
+									key={selectedEntry.id}
+									entry={selectedEntry}
+									plans={plans}
+									onAfterDelete={() => {
+										setMobileSheetOpen(false);
+										setSelectedId(null);
+									}}
+									toastSaved={() => toastSuccess(tToast("saved"))}
+									toastError={() => toastError(tToast("saveError"))}
+								/>
+							) : null}
+						</div>
+					</SheetContent>
+				</Sheet>
+			) : null}
 		</div>
 	);
 }
@@ -633,6 +640,7 @@ function JournalInspector({
 	const { confirm } = useConfirmationAlert();
 
 	// Form state — defaults to the entry's current server values.
+	const [mode, setMode] = useState<"view" | "edit">("view");
 	const [planId, setPlanId] = useState<string>(entry.planId);
 	const [planBookId, setPlanBookId] = useState<string>(entry.planBookId);
 	const [chapters, setChapters] = useState<number[]>(() => {
@@ -651,8 +659,9 @@ function JournalInspector({
 	const [note, setNote] = useState<string>(entry.note ?? "");
 	const [loggedAt, setLoggedAt] = useState<string>(entry.loggedAt);
 
-	// Reset form whenever the selected entry changes.
+	// Reset form + mode whenever the selected entry changes.
 	useEffect(() => {
+		setMode("view");
 		setPlanId(entry.planId);
 		setPlanBookId(entry.planBookId);
 		const list: number[] = [];
@@ -790,6 +799,7 @@ function JournalInspector({
 				loggedAt,
 			});
 			toastSaved();
+			setMode("view");
 		} catch {
 			toastError();
 		}
@@ -807,6 +817,7 @@ function JournalInspector({
 		setVerseEnd(entry.verseEnd != null ? `${entry.verseEnd}` : "");
 		setNote(entry.note ?? "");
 		setLoggedAt(entry.loggedAt);
+		setMode("view");
 	};
 
 	const handleDelete = () => {
@@ -829,6 +840,74 @@ function JournalInspector({
 
 	const tokens = colorTokens(entry.planColor);
 	const Icon = iconForKey(entry.planIcon);
+	const passageLabel = `${entry.bookName} ${formatReadingLogLabel({
+		chapterStart: entry.chapterStart,
+		chapterEnd: entry.chapterEnd,
+		verseStart: entry.verseStart,
+		verseEnd: entry.verseEnd,
+	})}`;
+
+	if (mode === "view") {
+		return (
+			<div className="flex h-full flex-col">
+				<div className="px-4 sm:px-5 py-4 border-b space-y-1">
+					<div className="gap-2 flex items-center">
+						<span
+							className={cn(
+								"size-8 flex shrink-0 items-center justify-center rounded-md",
+								tokens.soft,
+							)}
+						>
+							<Icon className={cn("size-4", tokens.text)} />
+						</span>
+						<div className="min-w-0">
+							<p className="text-sm font-medium truncate">{entry.planTitle}</p>
+							<p className="text-xs text-muted-foreground">
+								{format.dateTime(new Date(entry.loggedAt), { dateStyle: "long" })}
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div className="flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-4">
+					<div>
+						<p className="text-xs uppercase tracking-wide text-muted-foreground">
+							{t("passage")}
+						</p>
+						<p className="mt-1 text-xl font-semibold">{passageLabel}</p>
+					</div>
+					<div>
+						<p className="text-xs uppercase tracking-wide text-muted-foreground">
+							{t("noteLabel")}
+						</p>
+						<NoteMarkdown
+							content={entry.note}
+							className="mt-2"
+							emptyState={
+								<p className="mt-2 text-sm italic text-muted-foreground">{t("noteEmpty")}</p>
+							}
+						/>
+					</div>
+				</div>
+
+				<div className="px-4 sm:px-5 py-3 border-t gap-2 flex items-center justify-between">
+					<Button
+						type="button"
+						variant="outline"
+						className="text-destructive"
+						onClick={handleDelete}
+					>
+						<Trash2Icon className="mr-1.5 size-4" />
+						{t("delete")}
+					</Button>
+					<Button type="button" onClick={() => setMode("edit")}>
+						<PencilIcon className="mr-1.5 size-4" />
+						{t("edit")}
+					</Button>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="flex h-full flex-col">

@@ -23,6 +23,21 @@ function plansListKey(includeArchived: boolean) {
 	});
 }
 
+/**
+ * Invalidates every cache that depends on a user's reading logs. We use the
+ * root query keys so consumers with different inputs (e.g. journal at
+ * limit=200 vs home at limit=50) all refetch together.
+ */
+async function invalidateReadingLogCaches(queryClient: ReturnType<typeof useQueryClient>) {
+	await Promise.all([
+		queryClient.invalidateQueries({ queryKey: orpc.lectio.readingLogs.recent.key() }),
+		queryClient.invalidateQueries({ queryKey: orpc.lectio.readingLogs.list.key() }),
+		queryClient.invalidateQueries({ queryKey: orpc.lectio.plans.builder.key() }),
+		queryClient.invalidateQueries({ queryKey: orpc.lectio.plans.recentLogs.key() }),
+		queryClient.invalidateQueries({ queryKey: orpc.lectio.plans.list.key() }),
+	]);
+}
+
 function updateBuilderCache(
 	current: BuilderResponse | undefined,
 	updater: (draft: BuilderResponse) => BuilderResponse,
@@ -418,29 +433,8 @@ export function useLogReadingMutation() {
 			onError: () => {
 				toastError(t("saveError"));
 			},
-			onSuccess: async (_result, variables) => {
-				await Promise.all([
-					queryClient.invalidateQueries({
-						queryKey: orpc.lectio.plans.builder.queryKey({
-							input: { planId: variables.planId },
-						}),
-					}),
-					queryClient.invalidateQueries({
-						queryKey: orpc.lectio.plans.recentLogs.queryKey({
-							input: { planId: variables.planId, limit: 50 },
-						}),
-					}),
-					queryClient.invalidateQueries({
-						queryKey: orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } }),
-					}),
-					queryClient.invalidateQueries({
-						queryKey: orpc.lectio.readingLogs.list.queryKey({
-							input: { planId: variables.planId, planBookId: variables.planBookId },
-						}),
-					}),
-					queryClient.invalidateQueries({ queryKey: plansListKey(false) }),
-					queryClient.invalidateQueries({ queryKey: plansListKey(true) }),
-				]);
+			onSuccess: async () => {
+				await invalidateReadingLogCaches(queryClient);
 			},
 		}),
 	);
@@ -449,8 +443,6 @@ export function useLogReadingMutation() {
 export function useUpdateReadingLogMutation() {
 	const queryClient = useQueryClient();
 	const t = useTranslations("lectio.toast");
-	const userRecentKey = orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } });
-	const userRecentLargeKey = orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 200 } });
 
 	return useMutation(
 		orpc.lectio.readingLogs.update.mutationOptions({
@@ -458,26 +450,7 @@ export function useUpdateReadingLogMutation() {
 				toastError(t("saveError"));
 			},
 			onSettled: async () => {
-				// We don't know which plan / plan-book the entry belongs to here,
-				// so do a coarse invalidation across the cross-plan feed and the
-				// plan list (which surfaces chapter counts). The plan-scoped
-				// builders + per-plan-book log lists are refetched lazily when the
-				// user opens those views.
-				await queryClient.invalidateQueries({ queryKey: userRecentKey });
-				await queryClient.invalidateQueries({ queryKey: userRecentLargeKey });
-				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
-				await queryClient.invalidateQueries({ queryKey: plansListKey(true) });
-				// Builder + per-plan recent feeds: invalidate everything under those
-				// roots so any open journal page picks up the change.
-				await queryClient.invalidateQueries({
-					queryKey: orpc.lectio.plans.builder.key(),
-				});
-				await queryClient.invalidateQueries({
-					queryKey: orpc.lectio.plans.recentLogs.key(),
-				});
-				await queryClient.invalidateQueries({
-					queryKey: orpc.lectio.readingLogs.list.key(),
-				});
+				await invalidateReadingLogCaches(queryClient);
 			},
 		}),
 	);
@@ -486,13 +459,6 @@ export function useUpdateReadingLogMutation() {
 export function useDeleteReadingLogMutation(planId: string, planBookId: string) {
 	const queryClient = useQueryClient();
 	const t = useTranslations("lectio.toast");
-	const builderQueryKey = orpc.lectio.plans.builder.queryKey({
-		input: { planId },
-	});
-	const recentQueryKey = orpc.lectio.plans.recentLogs.queryKey({
-		input: { planId, limit: 50 },
-	});
-	const userRecentKey = orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } });
 	const logsQueryKey = orpc.lectio.readingLogs.list.queryKey({
 		input: { planId, planBookId },
 	});
@@ -517,11 +483,7 @@ export function useDeleteReadingLogMutation(planId: string, planBookId: string) 
 				toastError(t("saveError"));
 			},
 			onSettled: async () => {
-				await queryClient.invalidateQueries({ queryKey: logsQueryKey });
-				await queryClient.invalidateQueries({ queryKey: builderQueryKey });
-				await queryClient.invalidateQueries({ queryKey: recentQueryKey });
-				await queryClient.invalidateQueries({ queryKey: userRecentKey });
-				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
+				await invalidateReadingLogCaches(queryClient);
 			},
 		}),
 	);
