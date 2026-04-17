@@ -1,5 +1,5 @@
 import { publicProcedure } from "../../../orpc/procedures";
-import { getYouVersionVerseOfDay } from "../lib/youversion";
+import { getPassageContent, getYouVersionVerseOfDay } from "../lib/youversion";
 
 export const getVerseOfDayProcedure = publicProcedure
 	.route({
@@ -8,7 +8,7 @@ export const getVerseOfDayProcedure = publicProcedure
 		tags: ["Lectio"],
 		summary: "Get Verse of the Day",
 		description:
-			"Fetches today's verse of the day metadata from YouVersion and returns Bible.com deep links.",
+			"Fetches today's verse of the day metadata + verse content from YouVersion and returns Bible.com deep links.",
 	})
 	.handler(async () => {
 		try {
@@ -19,12 +19,15 @@ export const getVerseOfDayProcedure = publicProcedure
 			}
 
 			const chapter = `${verse.usfmCode}.${verse.chapter}`;
-			const bibleDotComUrl = `https://www.bible.com/bible/3034/${chapter}`;
+			const bibleDotComUrl = `https://www.bible.com/bible/3034/${verse.passageId}`;
+			const passage = await getPassageContent(verse.passageId, verse.bibleId);
 
 			return {
 				...verse,
 				chapter,
 				bibleDotComUrl,
+				content: passage?.content ?? null,
+				reference: passage?.reference ?? null,
 			};
 		} catch {
 			return null;

@@ -77,6 +77,59 @@ export interface VerseOfDayData {
 	bibleComChapterUrl: string;
 }
 
+export interface PassageContent {
+	id: string;
+	content: string;
+	reference: string;
+}
+
+interface PassageResponse {
+	id?: unknown;
+	content?: unknown;
+	reference?: unknown;
+}
+
+function normalizePassageResponse(payload: unknown): PassageContent | null {
+	if (!payload || typeof payload !== "object") {
+		return null;
+	}
+
+	const record = payload as PassageResponse;
+	if (
+		typeof record.id !== "string" ||
+		typeof record.content !== "string" ||
+		typeof record.reference !== "string"
+	) {
+		return null;
+	}
+
+	return {
+		id: record.id,
+		content: record.content,
+		reference: record.reference,
+	};
+}
+
+/**
+ * Fetches the verse text for a passage from YouVersion.
+ *
+ * Returns null if YouVersion is unreachable so callers can render a
+ * graceful fallback instead of throwing.
+ */
+export async function getPassageContent(
+	passageId: string,
+	bibleId = BSB_BIBLE_ID,
+): Promise<PassageContent | null> {
+	try {
+		const response = await requestYouVersion<unknown>(
+			`/bibles/${bibleId}/passages/${passageId}`,
+		);
+		return normalizePassageResponse(response);
+	} catch {
+		return null;
+	}
+}
+
 export async function getVerseOfDay(day: number): Promise<VerseOfDayData> {
 	const endpoints = [`/verse-of-the-days/${day}`, `/verse_of_the_days/${day}`];
 

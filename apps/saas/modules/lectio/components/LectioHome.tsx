@@ -4,12 +4,14 @@ import { useLogReading } from "@lectio/components/LogReadingProvider";
 import { PlanCard } from "@lectio/components/PlanCard";
 import { PlanComposerDialog } from "@lectio/components/PlanComposerDialog";
 import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
+import { VerseOfDayBanner } from "@lectio/components/VerseOfDayBanner";
 import {
 	useDeletePlanMutation,
 	useLectioPlansQuery,
 	useUserRecentReadingLogsQuery,
 	type PlansListResponse,
 	type RecentLogsResponse,
+	type VerseOfDayResponse,
 } from "@lectio/hooks/use-lectio";
 import {
 	Accordion,
@@ -29,12 +31,14 @@ interface LectioHomeProps {
 	initialPlans: PlansListResponse;
 	initialArchivedPlans: PlansListResponse;
 	initialRecentLogs: RecentLogsResponse;
+	verseOfDay: VerseOfDayResponse;
 }
 
 export function LectioHome({
 	initialPlans,
 	initialArchivedPlans,
 	initialRecentLogs,
+	verseOfDay,
 }: LectioHomeProps) {
 	const t = useTranslations("lectio.home");
 	const tToast = useTranslations("lectio.toast");
@@ -92,6 +96,8 @@ export function LectioHome({
 			</div>
 
 			<PlanComposerDialog open={composerOpen} onOpenChange={setComposerOpen} />
+
+			<VerseOfDayBanner verseOfDay={verseOfDay} />
 
 			{hasNoPlans ? (
 				<Card className="p-10 space-y-3 text-center">

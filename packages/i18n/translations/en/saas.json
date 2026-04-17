@@ -633,7 +633,8 @@
 		"verseOfDay": {
 			"title": "Verse of the day",
 			"openBibleCom": "Open on Bible.com",
-			"unavailable": "Verse of the day is unavailable right now."
+			"unavailable": "Verse of the day is unavailable right now.",
+			"contentUnavailable": "The verse text is not available at the moment."
 		},
 		"home": {
 			"title": "Lectio",
