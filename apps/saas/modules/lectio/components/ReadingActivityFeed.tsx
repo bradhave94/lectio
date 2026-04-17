@@ -109,7 +109,7 @@ export function ReadingActivityFeed({
 
 				return (
 					<li key={group.submissionId}>
-						<Card className={cn("p-3 border-l-4", tokens.border)}>
+						<Card className="p-3">
 							<div className="gap-3 flex items-start justify-between">
 								<div className="min-w-0 gap-2 flex items-start">
 									<span
