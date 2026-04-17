@@ -810,12 +810,19 @@
 		},
 		"journalPage": {
 			"title": "Journal",
-			"subtitle": "Every reading entry, across every plan.",
+			"subtitle": "Browse, edit, and prune every reading entry.",
 			"logReading": "Log reading",
-			"counts": "Showing {shown} of {total}",
+			"counts": "{shown} of {total}",
+			"countsBadge": "{count, plural, one {# entry} other {# entries}}",
 			"empty": "No reading entries yet.",
 			"emptyFiltered": "No entries match the current filters.",
+			"selectEmpty": "Pick an entry on the left to view or edit it.",
+			"listHeader": "Entries",
+			"inspectorHeader": "Entry",
 			"filters": {
+				"title": "Filters",
+				"open": "Filters",
+				"search": "Search notes, books, plans...",
 				"plan": "Plan",
 				"book": "Book",
 				"from": "From",
@@ -825,7 +832,42 @@
 				"oldestFirst": "Oldest first",
 				"allPlans": "All plans",
 				"allBooks": "All books",
-				"clear": "Clear filters"
+				"clear": "Clear filters",
+				"dateRange": "Date range",
+				"datePresets": {
+					"last7": "Last 7 days",
+					"last30": "Last 30 days",
+					"thisMonth": "This month",
+					"all": "All time"
+				}
+			},
+			"groups": {
+				"today": "Today",
+				"yesterday": "Yesterday",
+				"thisWeek": "This week",
+				"earlier": "Earlier"
+			},
+			"inspector": {
+				"planLabel": "Plan",
+				"planBookLabel": "Book",
+				"dateLabel": "Date",
+				"verseRangeLabel": "Verse range (single chapter only)",
+				"verseAny": "Whole chapter",
+				"verseFrom": "From",
+				"verseTo": "To",
+				"noteLabel": "Note",
+				"notePlaceholder": "Reflection, insight, prayer...",
+				"save": "Save changes",
+				"cancel": "Discard changes",
+				"delete": "Delete entry",
+				"deleteConfirmTitle": "Delete entry?",
+				"deleteConfirmMessage": "This permanently removes the reading entry. This cannot be undone.",
+				"deleteConfirm": "Delete",
+				"unsaved": "Unsaved changes",
+				"moveTitle": "Move to a different plan or book",
+				"moveHint": "Changing the plan resets the book selection.",
+				"missingChapters": "Pick at least one chapter to keep.",
+				"noBooks": "This plan has no books yet — add one before moving entries here."
 			}
 		},
 		"fab": {
