@@ -111,12 +111,8 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 	const tToast = useTranslations("lectio.toast");
 	const { openLogReading } = useLogReading();
 
-	const entriesQuery = useUserRecentReadingLogsQuery(initialEntries, 200);
-	const allEntries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data]);
-	const plansQuery = useLectioPlansQuery(initialPlans, true);
-	const plans = plansQuery.data ?? [];
-
 	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [planIds, setPlanIds] = useState<string[]>([]);
 	const [bookNames, setBookNames] = useState<string[]>([]);
 	const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
@@ -127,6 +123,19 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 	const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 	const isBelowLg = useIsBelowLg();
 
+	// Debounce the search term so we don't fire a server query per keystroke.
+	useEffect(() => {
+		const handle = window.setTimeout(() => {
+			setDebouncedSearch(search.trim());
+		}, 300);
+		return () => window.clearTimeout(handle);
+	}, [search]);
+
+	const entriesQuery = useUserRecentReadingLogsQuery(initialEntries, 200, debouncedSearch);
+	const allEntries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data]);
+	const plansQuery = useLectioPlansQuery(initialPlans, true);
+	const plans = plansQuery.data ?? [];
+
 	const filteredEntries = useMemo(() => {
 		const fromTs = dateRange.from ? new Date(dateRange.from).getTime() : null;
 		const toTs = dateRange.to
@@ -134,19 +143,14 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 			: null;
 		const planSet = planIds.length > 0 ? new Set(planIds) : null;
 		const bookSet = bookNames.length > 0 ? new Set(bookNames) : null;
-		const needle = search.trim().toLowerCase();
 
+		// Search is handled server-side; filter only on plan/book/date locally.
 		const filtered = allEntries.filter((entry) => {
 			if (planSet && !planSet.has(entry.planId)) return false;
 			if (bookSet && !bookSet.has(entry.bookName)) return false;
 			const ts = new Date(entry.loggedAt).getTime();
 			if (fromTs !== null && ts < fromTs) return false;
 			if (toTs !== null && ts > toTs) return false;
-			if (needle) {
-				const haystack =
-					`${entry.bookName} ${entry.planTitle} ${entry.note ?? ""}`.toLowerCase();
-				if (!haystack.includes(needle)) return false;
-			}
 			return true;
 		});
 
@@ -160,7 +164,7 @@ export function JournalView({ initialPlans, initialEntries }: JournalViewProps) 
 		});
 
 		return filtered;
-	}, [allEntries, planIds, bookNames, dateRange, sort, search]);
+	}, [allEntries, planIds, bookNames, dateRange, sort]);
 
 	// Auto-select the first visible entry when the selection becomes invalid.
 	useEffect(() => {

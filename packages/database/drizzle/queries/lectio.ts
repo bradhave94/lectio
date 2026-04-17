@@ -1106,7 +1106,35 @@ export async function listRecentReadingLogsForPlan(planId: string, limit = 50) {
 	return rows.map(mapReadingLogRow);
 }
 
-export async function listRecentReadingLogsForUser(userId: string, limit = 50) {
+export interface ListRecentLogsForUserOptions {
+	limit?: number;
+	search?: string;
+}
+
+export async function listRecentReadingLogsForUser(
+	userId: string,
+	options: ListRecentLogsForUserOptions = {},
+) {
+	const limit = options.limit ?? 50;
+	const trimmed = options.search?.trim() ?? "";
+
+	const baseClauses = [eq(plans.userId, userId)];
+
+	// When a search string is provided, combine a Postgres full-text query on
+	// `reading_logs.note_tsv` with case-insensitive matches on book + plan
+	// titles. We use websearch_to_tsquery so users can write quoted phrases
+	// and OR/AND naturally.
+	if (trimmed) {
+		const ilikeNeedle = `%${trimmed}%`;
+		baseClauses.push(
+			sql`(
+				note_tsv @@ websearch_to_tsquery('english', ${trimmed})
+				OR ${books.name} ILIKE ${ilikeNeedle}
+				OR ${plans.title} ILIKE ${ilikeNeedle}
+			)`,
+		);
+	}
+
 	const rows = await db
 		.select({
 			id: readingLogs.id,
@@ -1130,7 +1158,7 @@ export async function listRecentReadingLogsForUser(userId: string, limit = 50) {
 		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
 		.innerJoin(plans, eq(plans.id, planBooks.planId))
 		.innerJoin(books, eq(books.id, planBooks.bookId))
-		.where(eq(plans.userId, userId))
+		.where(and(...baseClauses))
 		.orderBy(desc(readingLogs.loggedAt), desc(readingLogs.createdAt))
 		.limit(limit);
 

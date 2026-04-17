@@ -81,12 +81,17 @@ export function useLectioVerseOfDayQuery(initialData?: VerseOfDayResponse) {
 	});
 }
 
-export function useUserRecentReadingLogsQuery(initialData?: RecentLogsResponse, limit = 50) {
+export function useUserRecentReadingLogsQuery(
+	initialData?: RecentLogsResponse,
+	limit = 50,
+	search?: string,
+) {
+	const trimmed = search?.trim();
 	return useQuery({
 		...orpc.lectio.readingLogs.recent.queryOptions({
-			input: { limit },
+			input: { limit, search: trimmed ? trimmed : undefined },
 		}),
-		initialData,
+		initialData: trimmed ? undefined : initialData,
 	});
 }
 
