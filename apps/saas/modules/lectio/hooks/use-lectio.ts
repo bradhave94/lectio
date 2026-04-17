@@ -132,12 +132,17 @@ export function useDeletePlanMutation() {
 	);
 }
 
-export function usePlanBuilderQuery(planId: string, initialData?: BuilderResponse) {
+export function usePlanBuilderQuery(
+	planId: string,
+	initialData?: BuilderResponse,
+	options?: { enabled?: boolean },
+) {
 	return useQuery({
 		...orpc.lectio.plans.builder.queryOptions({
 			input: { planId },
 		}),
 		initialData,
+		...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
 	});
 }
 

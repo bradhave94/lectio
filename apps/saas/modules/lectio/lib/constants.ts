@@ -15,15 +15,15 @@ export const BSB_BIBLE_ID = 3034;
 export const TESTAMENT_OPTIONS = [
 	{
 		value: "ALL",
-		labelKey: "builder.bookPicker.tabs.all",
+		labelKey: "editor.bookPicker.tabs.all",
 	},
 	{
 		value: "OT",
-		labelKey: "builder.bookPicker.tabs.ot",
+		labelKey: "editor.bookPicker.tabs.ot",
 	},
 	{
 		value: "NT",
-		labelKey: "builder.bookPicker.tabs.nt",
+		labelKey: "editor.bookPicker.tabs.nt",
 	},
 ] as const;
 export type TestamentOption = (typeof TESTAMENT_OPTIONS)[number]["value"];

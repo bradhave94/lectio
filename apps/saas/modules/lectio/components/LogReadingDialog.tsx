@@ -170,7 +170,9 @@ export function LogReadingDialog({
 		}
 	}, [planId, plans]);
 
-	const builderQuery = usePlanBuilderQuery(planId ?? "", undefined);
+	const builderQuery = usePlanBuilderQuery(planId ?? "", undefined, {
+		enabled: Boolean(planId),
+	});
 	const planBooks = useMemo(
 		() => builderQuery.data?.planBooks ?? [],
 		[builderQuery.data?.planBooks],

@@ -718,7 +718,12 @@
 				"empty": "No books match your search.",
 				"chaptersCount": "{count} chapters",
 				"inPlan": "In plan",
-				"addSelected": "Add {count} to plan"
+				"addSelected": "Add {count} to plan",
+				"tabs": {
+					"all": "Tous",
+					"ot": "AT",
+					"nt": "NT"
+				}
 			},
 			"scope": {
 				"whole": "Full book",
