@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-04-17
+
+### Lectio polish pass
+
+- **Dedicated `/journal` page** with plan + book + date-range filters and a sort toggle. Reading entries are listed across every plan with notes inline and a delete button per entry.
+- **Dedicated `/plans` page** rendered as a table with row actions (Open journal / Edit / Archive / Unarchive / Delete) and a `New plan` button.
+- **Per-book expandable log list** on the plan journal page lets users review and delete individual reading log rows under each book.
+- **Floating `+` action button** is mounted globally inside `LogReadingProvider`, so the Log Reading dialog is reachable from every Lectio page (hidden when the dialog is open).
+- **Sidebar updates**: rename Start → Home; add Plans and Journal entries.
+- **Real verse of the day**: `getVerseOfDay` now also fetches the passage content from `/v1/bibles/3034/passages/{id}`. The Home banner renders the verse text + reference + Bible.com link.
+- **New plan flow** no longer opens a modal — it creates a placeholder plan and routes you straight to `/plans/<id>/edit`.
+- **Plan card visual cleanup**: drop the chunky `border-l-4` accent in favor of a tinted icon avatar; the whole card is now a single `Link` for easier navigation; "No description yet" placeholder is hidden when empty.
+- **Book picker quick-add**: "Select all", "Old Testament", "New Testament", and "Clear" buttons in the editor's book picker.
+- Translations: new keys for `app.menu.{home,plans,journal}`, `lectio.{plansIndex,journalPage,fab,verseOfDay.contentUnavailable,journal.expand/collapse/bookEntriesEmpty/deleteEntry,editor.bookPicker.{selectAll,selectOT,selectNT,clear},composer.untitled}` mirrored across `en/de/es/fr`.
+
 ## 2026-04-16
 
 ### Lectio re-imagining
