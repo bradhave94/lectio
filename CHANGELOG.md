@@ -1,8 +1,26 @@
 # Changelog
 
-## 2026-04-17
+## 2026-04-17 — Lectio editor + shift-click + journal redesign
 
-### Lectio polish pass
+### Editing reading entries
+
+- New `lectio.readingLogs.update` procedure (`PATCH /lectio/reading-logs/{id}`). Supports moving an entry to a different plan-book and editing chapter range, verse range, note, and date. Recomputes auto-status on both source and destination plan-books after a move.
+- New `useUpdateReadingLogMutation` client hook with broad cache invalidation so all open journals refresh.
+
+### Shift-click range select
+
+- Extracted reusable `ChapterPicker` component with chip grid + free-form text mirror.
+- Click a chip to anchor; **shift-click another chip** to select every chapter in between (additive). Used by both the Log Reading dialog and the new Journal inspector.
+
+### Journal page redesign
+
+- `/journal` now renders as a two-column "code editor" layout: left rail of every reading entry (plan icon, passage label, date, note preview), right pane is an inspector that edits the selected entry inline.
+- Inspector edits: plan, plan-book (move target), chapter range, verse range, note, date. Save / Cancel / Delete actions visible at the bottom; an "Unsaved changes" hint appears when the form is dirty.
+- Filter bar above: search across notes/books/plans, plan + book chip rows, date-range popover with quick presets (Last 7 days, Last 30 days, This month, All time), sort toggle, Clear button.
+- Mobile (<lg): collapses to a single column; tapping an entry opens the inspector inside a Sheet.
+- New i18n block under `lectio.journalPage.*` and `lectio.chapterPicker.*` mirrored to en/de/es/fr.
+
+## 2026-04-17 — Lectio polish pass
 
 - **Dedicated `/journal` page** with plan + book + date-range filters and a sort toggle. Reading entries are listed across every plan with notes inline and a delete button per entry.
 - **Dedicated `/plans` page** rendered as a table with row actions (Open journal / Edit / Archive / Unarchive / Delete) and a `New plan` button.
