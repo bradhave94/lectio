@@ -747,7 +747,11 @@
 				"title": "Delete plan",
 				"message": "This permanently removes the plan and every reading entry under it. This cannot be undone.",
 				"confirm": "Delete"
-			}
+			},
+			"expand": "Show entries",
+			"collapse": "Hide entries",
+			"bookEntriesEmpty": "No entries logged for this book yet.",
+			"deleteEntry": "Delete entry"
 		},
 		"logDialog": {
 			"title": "Log reading",

@@ -8,12 +8,14 @@ import {
 	useDeleteReadingLogMutation,
 	usePlanBuilderQuery,
 	usePlanRecentReadingLogsQuery,
+	useReadingLogsQuery,
 	useUpdatePlanMutation,
 	type BuilderResponse,
 	type PlanBookRow,
 	type PlanRecentLogsResponse,
 	type RecentLogsResponse,
 } from "@lectio/hooks/use-lectio";
+import { formatReadingLogLabel } from "@lectio/lib/reading-log";
 import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import {
 	Button,
@@ -31,6 +33,7 @@ import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvid
 import {
 	ArchiveIcon,
 	BookOpenIcon,
+	ChevronDownIcon,
 	MoreHorizontalIcon,
 	PencilIcon,
 	Trash2Icon,
@@ -38,6 +41,7 @@ import {
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface PlanJournalViewProps {
 	planId: string;
@@ -243,6 +247,7 @@ export function PlanJournalView({
 						{builder.planBooks.map((planBook) => (
 							<li key={planBook.id}>
 								<PlanBookProgressRow
+									planId={planId}
 									planBook={planBook}
 									onLog={() => openLogReading({ planId, planBookId: planBook.id })}
 								/>
@@ -292,8 +297,22 @@ function JournalActivity({
 	);
 }
 
-function PlanBookProgressRow({ planBook, onLog }: { planBook: PlanBookRow; onLog: () => void }) {
+function PlanBookProgressRow({
+	planId,
+	planBook,
+	onLog,
+}: {
+	planId: string;
+	planBook: PlanBookRow;
+	onLog: () => void;
+}) {
 	const t = useTranslations("lectio");
+	const tToast = useTranslations("lectio.toast");
+	const format = useFormatter();
+	const [expanded, setExpanded] = useState(false);
+	const logsQuery = useReadingLogsQuery(planId, expanded ? planBook.id : "");
+	const deleteLogMutation = useDeleteReadingLogMutation(planId, planBook.id);
+
 	const completion = percent(planBook.chaptersCovered, planBook.chaptersInScope);
 	const scopeLabel =
 		planBook.chapterStart != null && planBook.chapterEnd != null
@@ -303,23 +322,56 @@ function PlanBookProgressRow({ planBook, onLog }: { planBook: PlanBookRow; onLog
 				})
 			: t("editor.scope.whole");
 
+	const handleDeleteLog = async (logId: string) => {
+		try {
+			await deleteLogMutation.mutateAsync({ readingLogId: logId });
+			toastSuccess(tToast("saved"));
+		} catch {
+			toastError(tToast("saveError"));
+		}
+	};
+
+	const logs = logsQuery.data ?? [];
+	const hasLogs = planBook.logCount > 0;
+	const expandLabel = expanded ? t("journal.collapse") : t("journal.expand");
+
 	return (
 		<Card className="p-3 space-y-2">
 			<div className="gap-3 flex items-start justify-between">
-				<div className="min-w-0">
-					<div className="gap-2 flex items-center">
-						<p className="font-medium truncate">{planBook.book.name}</p>
-						<PlanStatusBadge
-							status={planBook.status as "not_started" | "in_progress" | "completed"}
-						/>
+				<button
+					type="button"
+					onClick={() => setExpanded((value) => !value)}
+					disabled={!hasLogs}
+					className={cn(
+						"min-w-0 gap-2 flex items-start text-left -m-1 p-1 rounded-md transition-colors",
+						hasLogs && "hover:bg-accent/50",
+					)}
+					aria-expanded={expanded}
+					aria-label={hasLogs ? expandLabel : undefined}
+				>
+					<ChevronDownIcon
+						className={cn(
+							"mt-1 size-4 shrink-0 text-muted-foreground transition-transform",
+							expanded && "rotate-180",
+							!hasLogs && "opacity-30",
+						)}
+					/>
+					<div className="min-w-0">
+						<div className="gap-2 flex items-center">
+							<p className="font-medium truncate">{planBook.book.name}</p>
+							<PlanStatusBadge
+								status={planBook.status as "not_started" | "in_progress" | "completed"}
+							/>
+						</div>
+						<p className="text-xs text-muted-foreground">{scopeLabel}</p>
 					</div>
-					<p className="text-xs text-muted-foreground">{scopeLabel}</p>
-				</div>
+				</button>
 				<Button type="button" size="sm" variant="outline" onClick={onLog}>
 					<BookOpenIcon className="mr-1.5 size-4" />
 					{t("journal.log")}
 				</Button>
 			</div>
+
 			<div className="space-y-1">
 				<Progress value={completion} className="h-1.5" />
 				<p className="text-xs text-muted-foreground">
@@ -329,6 +381,55 @@ function PlanBookProgressRow({ planBook, onLog }: { planBook: PlanBookRow; onLog
 					})}
 				</p>
 			</div>
+
+			{expanded ? (
+				<div className="pt-2 border-t space-y-1.5">
+					{logsQuery.isPending ? (
+						<div className="space-y-1.5">
+							{Array.from({ length: 2 }).map((_, idx) => (
+								<div key={idx} className="h-10 animate-pulse rounded-md bg-muted" />
+							))}
+						</div>
+					) : logs.length === 0 ? (
+						<p className="text-xs text-center text-muted-foreground py-3">
+							{t("journal.bookEntriesEmpty")}
+						</p>
+					) : (
+						<ul className="space-y-1">
+							{logs.map((log) => (
+								<li
+									key={log.id}
+									className="gap-2 px-2 py-1.5 flex items-start justify-between rounded-md hover:bg-accent/50"
+								>
+									<div className="min-w-0">
+										<p className="text-sm font-medium">
+											{planBook.book.name} {formatReadingLogLabel(log)}
+										</p>
+										<p className="text-xs text-muted-foreground">
+											{format.dateTime(new Date(log.loggedAt), { dateStyle: "medium" })}
+										</p>
+										{log.note ? (
+											<p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
+												{log.note}
+											</p>
+										) : null}
+									</div>
+									<Button
+										type="button"
+										size="icon"
+										variant="ghost"
+										className="text-destructive shrink-0"
+										aria-label={t("journal.deleteEntry")}
+										onClick={() => handleDeleteLog(log.id)}
+									>
+										<Trash2Icon className="size-4" />
+									</Button>
+								</li>
+							))}
+						</ul>
+					)}
+				</div>
+			) : null}
 		</Card>
 	);
 }
