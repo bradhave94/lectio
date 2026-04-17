@@ -827,6 +827,9 @@
 				"allBooks": "All books",
 				"clear": "Clear filters"
 			}
+		},
+		"fab": {
+			"logReading": "Log reading"
 		}
 	}
 }

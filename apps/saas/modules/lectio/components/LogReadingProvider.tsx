@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 import { LogReadingDialog } from "./LogReadingDialog";
+import { LogReadingFab } from "./LogReadingFab";
 
 interface LogReadingContextValue {
 	openLogReading: (options?: { planId?: string; planBookId?: string }) => void;
@@ -42,6 +43,7 @@ export function LogReadingProvider({ children }: LogReadingProviderProps) {
 				defaultPlanId={defaults.planId}
 				defaultPlanBookId={defaults.planBookId}
 			/>
+			<LogReadingFab hidden={open} />
 		</LogReadingContext.Provider>
 	);
 }
