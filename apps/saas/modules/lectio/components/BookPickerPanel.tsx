@@ -49,6 +49,31 @@ export function BookPickerPanel({
 		onSelectionChange(Array.from(next));
 	};
 
+	const selectableBooks = useMemo(
+		() => books.filter((book) => !excludedSet.has(book.id)),
+		[books, excludedSet],
+	);
+
+	const oldTestamentIds = useMemo(
+		() => selectableBooks.filter((book) => book.testament === "OT").map((book) => book.id),
+		[selectableBooks],
+	);
+
+	const newTestamentIds = useMemo(
+		() => selectableBooks.filter((book) => book.testament === "NT").map((book) => book.id),
+		[selectableBooks],
+	);
+
+	const handleQuickAdd = (next: number[]) => {
+		// Merge with the existing selection so quick-adds combine instead of
+		// replace (Select all + tweak is the most common flow).
+		const merged = new Set(selectedBookIds);
+		for (const id of next) merged.add(id);
+		onSelectionChange(Array.from(merged));
+	};
+
+	const handleClear = () => onSelectionChange([]);
+
 	return (
 		<Card className="p-4 md:p-5 gap-4 flex flex-col">
 			<div className="gap-2 flex items-center justify-between">
@@ -82,6 +107,45 @@ export function BookPickerPanel({
 					))}
 				</TabsList>
 			</Tabs>
+
+			<div className="gap-1.5 flex flex-wrap">
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onClick={() => handleQuickAdd(selectableBooks.map((book) => book.id))}
+					disabled={selectableBooks.length === 0}
+				>
+					{t("editor.bookPicker.selectAll")}
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onClick={() => handleQuickAdd(oldTestamentIds)}
+					disabled={oldTestamentIds.length === 0}
+				>
+					{t("editor.bookPicker.selectOT")}
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onClick={() => handleQuickAdd(newTestamentIds)}
+					disabled={newTestamentIds.length === 0}
+				>
+					{t("editor.bookPicker.selectNT")}
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="ghost"
+					onClick={handleClear}
+					disabled={selectedBookIds.length === 0}
+				>
+					{t("editor.bookPicker.clear")}
+				</Button>
+			</div>
 
 			<div className="space-y-1 pr-1 max-h-[60vh] overflow-y-auto">
 				{isPending ? (

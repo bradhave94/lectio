@@ -16,7 +16,7 @@ import {
 import { ArchiveIcon, BookOpenIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
-import type { MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 
 interface PlanCardProps {
 	plan: PlansListResponse[number];
@@ -32,8 +32,36 @@ function percent(completed: number, total: number) {
 	return Math.round((completed / total) * 100);
 }
 
-function stop(event: MouseEvent) {
+function stopMouse(event: MouseEvent) {
 	event.stopPropagation();
+}
+
+function stopKey(event: KeyboardEvent) {
+	// Prevent the wrapping <Link> from absorbing keyboard activations on the
+	// embedded button / dropdown trigger.
+	event.stopPropagation();
+}
+
+interface CardActionWrapperProps {
+	children: ReactNode;
+}
+
+/**
+ * Stops propagation of click + key events so embedded interactive controls
+ * (e.g. dropdown trigger, log button) don't trigger the surrounding plan-card
+ * Link navigation.
+ */
+function CardActionWrapper({ children }: CardActionWrapperProps) {
+	return (
+		<span
+			role="presentation"
+			onClick={stopMouse}
+			onKeyDown={stopKey}
+			className="contents"
+		>
+			{children}
+		</span>
+	);
 }
 
 export function PlanCard({
@@ -76,7 +104,7 @@ export function PlanCard({
 							) : null}
 						</div>
 					</div>
-					<div onClick={stop}>
+					<CardActionWrapper>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
@@ -112,7 +140,7 @@ export function PlanCard({
 								) : null}
 							</DropdownMenuContent>
 						</DropdownMenu>
-					</div>
+					</CardActionWrapper>
 				</div>
 
 				<div className="space-y-1.5">
@@ -139,12 +167,12 @@ export function PlanCard({
 						})}
 					</p>
 					{onLog ? (
-						<div onClick={stop}>
+						<CardActionWrapper>
 							<Button type="button" size="sm" onClick={onLog}>
 								<BookOpenIcon className="mr-1.5 size-4" />
 								{t("home.card.log")}
 							</Button>
-						</div>
+						</CardActionWrapper>
 					) : null}
 				</div>
 			</Card>

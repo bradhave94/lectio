@@ -721,7 +721,11 @@
 					"all": "Alle",
 					"ot": "AT",
 					"nt": "NT"
-				}
+				},
+				"selectAll": "Select all",
+				"selectOT": "Old Testament",
+				"selectNT": "New Testament",
+				"clear": "Clear"
 			},
 			"scope": {
 				"whole": "Full book",
