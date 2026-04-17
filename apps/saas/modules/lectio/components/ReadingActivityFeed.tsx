@@ -1,5 +1,6 @@
 "use client";
 
+import { NoteMarkdown } from "@lectio/components/NoteMarkdown";
 import type { RecentLogsResponse } from "@lectio/hooks/use-lectio";
 import { colorTokens, iconForKey } from "@lectio/lib/constants";
 import { formatReadingLogLabel } from "@lectio/lib/reading-log";
@@ -136,9 +137,10 @@ export function ReadingActivityFeed({
 											) : null}
 										</p>
 										{group.note ? (
-											<p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
-												{group.note}
-											</p>
+											<NoteMarkdown
+												content={group.note}
+												className="mt-1 text-muted-foreground line-clamp-3"
+											/>
 										) : null}
 									</div>
 								</div>

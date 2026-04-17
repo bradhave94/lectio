@@ -1,6 +1,7 @@
 "use client";
 
 import { useLogReading } from "@lectio/components/LogReadingProvider";
+import { NoteMarkdown } from "@lectio/components/NoteMarkdown";
 import { PlanStatusBadge } from "@lectio/components/PlanStatusBadge";
 import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
 import {
@@ -409,9 +410,7 @@ function PlanBookProgressRow({
 											{format.dateTime(new Date(log.loggedAt), { dateStyle: "medium" })}
 										</p>
 										{log.note ? (
-											<p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
-												{log.note}
-											</p>
+											<NoteMarkdown content={log.note} className="mt-1 text-muted-foreground" />
 										) : null}
 									</div>
 									<Button
