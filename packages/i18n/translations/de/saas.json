@@ -665,31 +665,7 @@
 			"delete": "Delete entry"
 		},
 		"composer": {
-			"title": "Create a new plan",
-			"subtitle": "Give your plan a name, choose how it looks, and optionally seed it with books.",
-			"steps": {
-				"basics": "Basics",
-				"personalize": "Personalize",
-				"books": "Books"
-			},
-			"titleLabel": "Title",
-			"titlePlaceholder": "Year through the New Testament",
-			"descriptionLabel": "Description",
-			"descriptionPlaceholder": "What is this plan focused on?",
-			"colorLabel": "Color",
-			"iconLabel": "Icon",
-			"startDateLabel": "Start date",
-			"targetEndLabel": "Target end date",
-			"cadenceLabel": "Cadence",
-			"cadencePlaceholder": "Daily · Mon/Wed/Fri · Weekly",
-			"preview": {
-				"placeholderTitle": "Untitled plan",
-				"help": "This is how the plan will appear on your dashboard."
-			},
-			"cancel": "Cancel",
-			"back": "Back",
-			"next": "Next",
-			"create": "Create plan"
+			"untitled": "Untitled plan"
 		},
 		"editor": {
 			"titleFallback": "Edit plan",

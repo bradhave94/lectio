@@ -1,8 +1,8 @@
 "use client";
 
 import { useLogReading } from "@lectio/components/LogReadingProvider";
+import { NewPlanButton } from "@lectio/components/NewPlanButton";
 import { PlanCard } from "@lectio/components/PlanCard";
-import { PlanComposerDialog } from "@lectio/components/PlanComposerDialog";
 import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
 import { VerseOfDayBanner } from "@lectio/components/VerseOfDayBanner";
 import {
@@ -23,9 +23,8 @@ import {
 } from "@repo/ui";
 import { toastError, toastSuccess } from "@repo/ui/components/toast";
 import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvider";
-import { BookOpenIcon, PlusIcon, SparklesIcon } from "lucide-react";
+import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
 
 interface LectioHomeProps {
 	initialPlans: PlansListResponse;
@@ -55,8 +54,6 @@ export function LectioHome({
 	const archivedPlans = allPlans.filter((plan) => plan.archivedAt !== null);
 	const recentLogs = recentLogsQuery.data ?? [];
 
-	const [composerOpen, setComposerOpen] = useState(false);
-
 	const handleDelete = (planId: string) => {
 		confirm({
 			title: t("delete.title"),
@@ -84,18 +81,13 @@ export function LectioHome({
 					<p className="text-sm text-muted-foreground">{t("subtitle")}</p>
 				</div>
 				<div className="gap-2 flex flex-wrap items-center">
-					<Button variant="outline" type="button" onClick={() => setComposerOpen(true)}>
-						<PlusIcon className="mr-1.5 size-4" />
-						{t("newPlan")}
-					</Button>
+					<NewPlanButton />
 					<Button type="button" onClick={() => openLogReading()} disabled={hasNoPlans}>
 						<BookOpenIcon className="mr-1.5 size-4" />
 						{t("logReading")}
 					</Button>
 				</div>
 			</div>
-
-			<PlanComposerDialog open={composerOpen} onOpenChange={setComposerOpen} />
 
 			<VerseOfDayBanner verseOfDay={verseOfDay} />
 
@@ -106,10 +98,7 @@ export function LectioHome({
 						<p className="text-lg font-semibold">{t("emptyTitle")}</p>
 						<p className="mt-1 text-sm text-muted-foreground">{t("emptyDescription")}</p>
 					</div>
-					<Button type="button" onClick={() => setComposerOpen(true)}>
-						<PlusIcon className="mr-1.5 size-4" />
-						{t("newPlan")}
-					</Button>
+					<NewPlanButton variant="primary" />
 				</Card>
 			) : (
 				<>
