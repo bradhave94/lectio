@@ -446,6 +446,43 @@ export function useLogReadingMutation() {
 	);
 }
 
+export function useUpdateReadingLogMutation() {
+	const queryClient = useQueryClient();
+	const t = useTranslations("lectio.toast");
+	const userRecentKey = orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 50 } });
+	const userRecentLargeKey = orpc.lectio.readingLogs.recent.queryKey({ input: { limit: 200 } });
+
+	return useMutation(
+		orpc.lectio.readingLogs.update.mutationOptions({
+			onError: () => {
+				toastError(t("saveError"));
+			},
+			onSettled: async () => {
+				// We don't know which plan / plan-book the entry belongs to here,
+				// so do a coarse invalidation across the cross-plan feed and the
+				// plan list (which surfaces chapter counts). The plan-scoped
+				// builders + per-plan-book log lists are refetched lazily when the
+				// user opens those views.
+				await queryClient.invalidateQueries({ queryKey: userRecentKey });
+				await queryClient.invalidateQueries({ queryKey: userRecentLargeKey });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(false) });
+				await queryClient.invalidateQueries({ queryKey: plansListKey(true) });
+				// Builder + per-plan recent feeds: invalidate everything under those
+				// roots so any open journal page picks up the change.
+				await queryClient.invalidateQueries({
+					queryKey: orpc.lectio.plans.builder.key(),
+				});
+				await queryClient.invalidateQueries({
+					queryKey: orpc.lectio.plans.recentLogs.key(),
+				});
+				await queryClient.invalidateQueries({
+					queryKey: orpc.lectio.readingLogs.list.key(),
+				});
+			},
+		}),
+	);
+}
+
 export function useDeleteReadingLogMutation(planId: string, planBookId: string) {
 	const queryClient = useQueryClient();
 	const t = useTranslations("lectio.toast");

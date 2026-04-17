@@ -15,6 +15,7 @@ import { removePlanBookProcedure } from "./procedures/remove-plan-book";
 import { reorderPlanBooksProcedure } from "./procedures/reorder-plan-books";
 import { updatePlanProcedure } from "./procedures/update-plan";
 import { updatePlanBookProcedure } from "./procedures/update-plan-book";
+import { updateReadingLogProcedure } from "./procedures/update-reading-log";
 
 export const lectioRouter = {
 	books: {
@@ -38,6 +39,7 @@ export const lectioRouter = {
 	readingLogs: {
 		list: listReadingLogsProcedure,
 		log: logReadingProcedure,
+		update: updateReadingLogProcedure,
 		delete: deleteReadingLogProcedure,
 		recent: listRecentUserLogsProcedure,
 	},

@@ -522,6 +522,41 @@ export async function deleteReadingLog(logId: string) {
 	return deleted ?? null;
 }
 
+export interface UpdateReadingLogChanges {
+	planBookId?: string;
+	chapterStart?: number;
+	chapterEnd?: number;
+	verseStart?: number | null;
+	verseEnd?: number | null;
+	note?: string | null;
+	loggedAt?: string;
+}
+
+export async function updateReadingLog(logId: string, changes: UpdateReadingLogChanges) {
+	const patch: Record<string, unknown> = {};
+	if (changes.planBookId !== undefined) patch.planBookId = changes.planBookId;
+	if (changes.chapterStart !== undefined) patch.chapterStart = changes.chapterStart;
+	if (changes.chapterEnd !== undefined) patch.chapterEnd = changes.chapterEnd;
+	if (changes.verseStart !== undefined) patch.verseStart = changes.verseStart;
+	if (changes.verseEnd !== undefined) patch.verseEnd = changes.verseEnd;
+	if (changes.note !== undefined) patch.note = changes.note;
+	if (changes.loggedAt !== undefined) patch.loggedAt = changes.loggedAt;
+
+	if (Object.keys(patch).length === 0) {
+		return db.query.readingLogs.findFirst({
+			where: eq(readingLogs.id, logId),
+		});
+	}
+
+	const [updated] = await db
+		.update(readingLogs)
+		.set(patch)
+		.where(eq(readingLogs.id, logId))
+		.returning();
+
+	return updated ?? null;
+}
+
 function computeChaptersInScope(
 	chapterCount: number,
 	chapterStart: number | null,
