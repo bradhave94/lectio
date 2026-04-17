@@ -368,9 +368,6 @@ export const planBooks = pgTable(
 		orderIndex: integer("order_index").notNull(),
 		chapterStart: integer("chapter_start"),
 		chapterEnd: integer("chapter_end"),
-		resourceUrl: text("resource_url"),
-		resourceLabel: text("resource_label"),
-		resourceType: text("resource_type"),
 		notes: text("notes"),
 		status: text("status").notNull().default("not_started"),
 		statusManual: boolean("status_manual").notNull().default(false),
@@ -383,10 +380,6 @@ export const planBooks = pgTable(
 		index("plan_books_plan_order_idx").on(table.planId, table.orderIndex),
 		index("plan_books_plan_id_idx").on(table.planId),
 		index("plan_books_book_id_idx").on(table.bookId),
-		check(
-			"plan_books_resource_type_check",
-			sql`${table.resourceType} IS NULL OR ${table.resourceType} IN ('reading_plan', 'video', 'podcast', 'book', 'article', 'other')`,
-		),
 		check(
 			"plan_books_status_check",
 			sql`${table.status} IN ('not_started', 'in_progress', 'completed')`,

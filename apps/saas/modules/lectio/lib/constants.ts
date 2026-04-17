@@ -10,8 +10,6 @@ import {
 	type LucideIcon,
 } from "lucide-react";
 
-export const BSB_BIBLE_ID = 3034;
-
 export const TESTAMENT_OPTIONS = [
 	{
 		value: "ALL",
