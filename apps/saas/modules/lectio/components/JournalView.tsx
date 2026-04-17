@@ -2,6 +2,7 @@
 
 import { ChapterPicker } from "@lectio/components/ChapterPicker";
 import { useLogReading } from "@lectio/components/LogReadingProvider";
+import { NoteEditor } from "@lectio/components/NoteEditor";
 import {
 	useBookChaptersQuery,
 	useDeleteReadingLogMutation,
@@ -33,7 +34,6 @@ import {
 	SheetDescription,
 	SheetHeader,
 	SheetTitle,
-	Textarea,
 } from "@repo/ui";
 import { toastError, toastSuccess } from "@repo/ui/components/toast";
 import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvider";
@@ -1040,12 +1040,12 @@ function JournalInspector({
 
 				<div className="space-y-1.5">
 					<Label htmlFor="inspector-note">{t("noteLabel")}</Label>
-					<Textarea
+					<NoteEditor
 						id="inspector-note"
 						value={note}
-						onChange={(event) => setNote(event.target.value)}
+						onChange={setNote}
 						placeholder={t("notePlaceholder")}
-						rows={5}
+						minHeight={200}
 					/>
 				</div>
 			</div>

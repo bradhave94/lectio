@@ -1,6 +1,7 @@
 "use client";
 
 import { ChapterPicker, rangesFromChapters } from "@lectio/components/ChapterPicker";
+import { NoteEditor } from "@lectio/components/NoteEditor";
 import {
 	useBookChaptersQuery,
 	useLectioPlansQuery,
@@ -24,7 +25,6 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-	Textarea,
 } from "@repo/ui";
 import { toastError, toastSuccess } from "@repo/ui/components/toast";
 import { BookOpenIcon } from "lucide-react";
@@ -332,15 +332,15 @@ export function LogReadingDialog({
 						</div>
 					) : null}
 
-					{/* Note */}
+					{/* Note (rich-text editor that stores Markdown) */}
 					<div className="space-y-1.5">
 						<Label htmlFor="log-note">{t("noteLabel")}</Label>
-						<Textarea
+						<NoteEditor
 							id="log-note"
 							value={note}
-							onChange={(event) => setNote(event.target.value)}
+							onChange={setNote}
 							placeholder={t("notePlaceholder")}
-							rows={4}
+							minHeight={140}
 						/>
 					</div>
 

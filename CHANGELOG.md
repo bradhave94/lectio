@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-17 — Lectio rich-text note editor
+
+- New `NoteEditor` component built on Tiptap 3 (StarterKit + Link + Placeholder) replaces the plain textarea everywhere notes are edited. Toolbar exposes bold, italic, H1–H3, lists, blockquote, inline + block code, link insertion (with prompt + unset), horizontal rule, and undo/redo. Standard keyboard shortcuts (Cmd-B/I/K/Z) work out of the box.
+- Notes still persist as Markdown thanks to a tiny round-trip helper: incoming Markdown is parsed via `marked` for Tiptap to render, outgoing HTML is serialised back with `turndown` (atx headings, fenced code, dash bullets, soft `<br>` → trailing-space line breaks). The existing `NoteMarkdown` reader keeps showing the same content read-only across the journal, the per-book expansion, and the activity feed.
+- Added deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-placeholder`, `marked`, `turndown` (+ types).
+- New i18n block under `lectio.editor.note.*` mirrored to en/de/es/fr.
+
 ## 2026-04-17 — Lectio habits + Markdown + full-text search + bug fixes
 
 ### Bug fixes

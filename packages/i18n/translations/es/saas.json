@@ -723,6 +723,26 @@
 				"message": "Remove {name} from this plan? Existing reading logs will be deleted.",
 				"confirm": "Remove",
 				"aria": "Remove book"
+			},
+			"note": {
+				"placeholder": "Reflection, insight, prayer...",
+				"ariaLabel": "Note editor",
+				"bold": "Bold",
+				"italic": "Italic",
+				"bulletList": "Bulleted list",
+				"orderedList": "Numbered list",
+				"quote": "Quote",
+				"code": "Inline code",
+				"codeBlock": "Code block",
+				"link": "Insert link",
+				"unlink": "Remove link",
+				"linkPromptUrl": "Link URL",
+				"heading1": "Heading 1",
+				"heading2": "Heading 2",
+				"heading3": "Heading 3",
+				"divider": "Divider",
+				"undo": "Undo",
+				"redo": "Redo"
 			}
 		},
 		"journal": {
