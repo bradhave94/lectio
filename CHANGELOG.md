@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-04-17 — Lectio habits + Markdown + full-text search + bug fixes
+
+### Bug fixes
+
+- Logging or editing a reading entry on `/journal` now updates the list immediately. Reading-log mutations invalidate caches at the query root so consumers with different inputs (home at limit=50, journal at limit=200, per-plan-book lists) all refetch together.
+- Clicking an entry on `/journal` no longer blurs the screen. The mobile inspector `Sheet` is now only mounted when the viewport is below the `lg` breakpoint via a new `useIsBelowLg` hook, so the desktop view never spawns a phantom radix overlay.
+- Journal inspector defaults to a read-only view: passage label, plain-text date, and the note rendered with Markdown. An `Edit` button switches to the existing form; saving returns you to view mode.
+
+### Habit features
+
+- New `lectio.stats.streak` procedure returning current + longest consecutive-day reading streaks.
+- New `lectio.stats.activity` procedure returning a zero-filled per-day activity series for the trailing year.
+- New `lectio.stats.dailyGoal` + `lectio.stats.setDailyGoal` procedures backed by a new `user.daily_goal_chapters` column.
+- Home page renders a `StatsRow` (streak card + daily goal progress ring with editable goal) and a GitHub-style `ReadingHeatmap` of the last year of activity. Reading-log mutations invalidate the stats namespace so widgets refresh without a reload.
+
+### Markdown notes
+
+- New `NoteMarkdown` component built on `react-markdown` + `remark-gfm` + `rehype-sanitize`. Strips embedded HTML/images, opens links in a new tab, and styles the rendered output with inline tailwind utilities (no `prose` plugin needed).
+- Notes render as Markdown in: journal inspector view mode, the per-book expansion list on the plan journal, and recent activity feed cards.
+
+### Full-text search
+
+- Added `reading_logs.note_tsv` (a Postgres generated `tsvector`) + a GIN index in migration `0004`.
+- `lectio.readingLogs.recent` accepts an optional `search` argument that combines `websearch_to_tsquery` against the tsvector with case-insensitive `ILIKE` matches against book + plan titles.
+- Journal search box debounces (300ms) and switches to server-side filtering when populated.
+
+### Platform debt
+
+- Dropped `plan_books.resource_url`, `resource_label`, `resource_type` and the matching check constraint (migration `0004`/`0005`).
+- Removed the unused `BSB_BIBLE_ID` export from `apps/saas/modules/lectio/lib/constants.ts`.
+
 ## 2026-04-17 — Lectio editor + shift-click + journal redesign
 
 ### Editing reading entries
