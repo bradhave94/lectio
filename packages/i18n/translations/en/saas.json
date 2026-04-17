@@ -77,7 +77,9 @@
 			"navigationTitle": "Menu",
 			"openNavigation": "Open navigation",
 			"organizationSettings": "Organization settings",
-			"start": "Start"
+			"home": "Home",
+			"plans": "Plans",
+			"journal": "Journal"
 		},
 		"userMenu": {
 			"accountSettings": "Account settings",
@@ -780,6 +782,54 @@
 			"cancel": "Cancel",
 			"missingChapters": "Please select at least one chapter.",
 			"invalidRange": "Could not parse the chapter list. Try \"1, 3, 5-7\"."
+		},
+		"plansIndex": {
+			"title": "Plans",
+			"subtitle": "Manage every reading plan you have built.",
+			"bookProgress": "{completed} / {total} books",
+			"activeEmptyTitle": "No active plans yet",
+			"activeEmptyHint": "Build a plan to start tracking your reading.",
+			"archivedTitle": "Archived ({count})",
+			"columns": {
+				"plan": "Plan",
+				"progress": "Progress",
+				"chapters": "Chapters logged",
+				"updated": "Last activity",
+				"actions": "Actions"
+			},
+			"actions": {
+				"edit": "Edit",
+				"openJournal": "Open journal",
+				"archive": "Archive",
+				"unarchive": "Unarchive",
+				"delete": "Delete",
+				"more": "More actions"
+			},
+			"delete": {
+				"title": "Delete plan",
+				"message": "This permanently removes the plan and every reading entry under it.",
+				"confirm": "Delete"
+			}
+		},
+		"journalPage": {
+			"title": "Journal",
+			"subtitle": "Every reading entry, across every plan.",
+			"logReading": "Log reading",
+			"counts": "Showing {shown} of {total}",
+			"empty": "No reading entries yet.",
+			"emptyFiltered": "No entries match the current filters.",
+			"filters": {
+				"plan": "Plan",
+				"book": "Book",
+				"from": "From",
+				"to": "To",
+				"sort": "Sort",
+				"newestFirst": "Newest first",
+				"oldestFirst": "Oldest first",
+				"allPlans": "All plans",
+				"allBooks": "All books",
+				"clear": "Clear filters"
+			}
 		}
 	}
 }

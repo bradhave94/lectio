@@ -31,7 +31,9 @@ import {
 	BotMessageSquareIcon,
 	ChevronRightIcon,
 	HomeIcon,
+	LibraryBigIcon,
 	MenuIcon,
+	NotebookTextIcon,
 	PanelLeftCloseIcon,
 	PanelLeftOpenIcon,
 	SettingsIcon,
@@ -337,12 +339,32 @@ export function NavBar() {
 					]
 				: undefined;
 
+		const isLectioPlansActive =
+			pathname === "/plans" || pathname.startsWith("/plans/");
+		const isJournalActive = pathname === "/journal" || pathname.startsWith("/journal/");
+		const isHomeActive =
+			!isLectioPlansActive &&
+			!isJournalActive &&
+			(pathname === "/" || pathname === basePath);
+
 		return [
 			{
-				label: t("app.menu.start"),
+				label: t("app.menu.home"),
 				href: startHref,
 				icon: HomeIcon,
-				isActive: pathname === "/" || pathname === basePath,
+				isActive: isHomeActive,
+			},
+			{
+				label: t("app.menu.plans"),
+				href: "/plans",
+				icon: LibraryBigIcon,
+				isActive: isLectioPlansActive,
+			},
+			{
+				label: t("app.menu.journal"),
+				href: "/journal",
+				icon: NotebookTextIcon,
+				isActive: isJournalActive,
 			},
 			{
 				label: t("app.menu.aiChatbot"),
