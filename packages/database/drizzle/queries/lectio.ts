@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "../client";
-import { bookChapters, books, planBooks, plans, readingLogs } from "../schema/postgres";
+import { bookChapters, books, planBooks, plans, readingLogs, user } from "../schema/postgres";
 
 export interface BooksListFilters {
 	testament?: "OT" | "NT";
@@ -530,6 +530,182 @@ export interface UpdateReadingLogChanges {
 	verseEnd?: number | null;
 	note?: string | null;
 	loggedAt?: string;
+}
+
+export interface ReadingStreak {
+	current: number;
+	longest: number;
+	lastEntryDate: string | null;
+}
+
+export interface ActivityDay {
+	date: string;
+	count: number;
+}
+
+/**
+ * Returns one entry per day across the requested window (inclusive). Days
+ * with zero logs are filled in so the heatmap renders without gaps.
+ */
+export async function getReadingActivity(
+	userId: string,
+	options: { from?: string; to?: string } = {},
+): Promise<{ from: string; to: string; days: ActivityDay[] }> {
+	const today = new Date();
+	today.setUTCHours(0, 0, 0, 0);
+	const fromBound = options.from
+		? new Date(`${options.from}T00:00:00Z`)
+		: new Date(Date.UTC(today.getUTCFullYear() - 1, today.getUTCMonth(), today.getUTCDate() + 1));
+	const toBound = options.to ? new Date(`${options.to}T00:00:00Z`) : today;
+
+	const fromIso = fromBound.toISOString().slice(0, 10);
+	const toIso = toBound.toISOString().slice(0, 10);
+
+	const rows = await db
+		.select({
+			date: readingLogs.loggedAt,
+			count: sql<number>`COUNT(*)`,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.where(
+			and(
+				eq(plans.userId, userId),
+				sql`${readingLogs.loggedAt} >= ${fromIso}::date`,
+				sql`${readingLogs.loggedAt} <= ${toIso}::date`,
+			),
+		)
+		.groupBy(readingLogs.loggedAt);
+
+	const counts = new Map<string, number>();
+	for (const row of rows) {
+		counts.set(row.date, Number(row.count));
+	}
+
+	const days: ActivityDay[] = [];
+	for (
+		let cursor = new Date(fromBound);
+		cursor.getTime() <= toBound.getTime();
+		cursor.setUTCDate(cursor.getUTCDate() + 1)
+	) {
+		const iso = cursor.toISOString().slice(0, 10);
+		days.push({ date: iso, count: counts.get(iso) ?? 0 });
+	}
+
+	return { from: fromIso, to: toIso, days };
+}
+
+/**
+ * Walks the user's distinct logged_at dates and returns the current and
+ * longest consecutive-day streaks. "Current" extends back from today (or the
+ * most recent entry if today has none — but breaks if the most recent entry
+ * is more than one day old).
+ */
+export async function getReadingStreak(userId: string): Promise<ReadingStreak> {
+	const rows = await db
+		.selectDistinct({ date: readingLogs.loggedAt })
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.where(eq(plans.userId, userId))
+		.orderBy(desc(readingLogs.loggedAt));
+
+	if (rows.length === 0) {
+		return { current: 0, longest: 0, lastEntryDate: null };
+	}
+
+	const dates = rows.map((row) => row.date);
+
+	const today = new Date();
+	today.setUTCHours(0, 0, 0, 0);
+	const yesterday = new Date(today);
+	yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+
+	const todayIso = today.toISOString().slice(0, 10);
+	const yesterdayIso = yesterday.toISOString().slice(0, 10);
+	const lastEntryDate = dates[0];
+
+	let current = 0;
+	if (lastEntryDate === todayIso || lastEntryDate === yesterdayIso) {
+		current = 1;
+		for (let i = 1; i < dates.length; i += 1) {
+			const previous = new Date(`${dates[i - 1]}T00:00:00Z`);
+			const next = new Date(`${dates[i]}T00:00:00Z`);
+			const diffDays = Math.round(
+				(previous.getTime() - next.getTime()) / (24 * 60 * 60 * 1000),
+			);
+			if (diffDays === 1) {
+				current += 1;
+			} else {
+				break;
+			}
+		}
+	}
+
+	let longest = 1;
+	let run = 1;
+	for (let i = 1; i < dates.length; i += 1) {
+		const previous = new Date(`${dates[i - 1]}T00:00:00Z`);
+		const next = new Date(`${dates[i]}T00:00:00Z`);
+		const diffDays = Math.round(
+			(previous.getTime() - next.getTime()) / (24 * 60 * 60 * 1000),
+		);
+		if (diffDays === 1) {
+			run += 1;
+			longest = Math.max(longest, run);
+		} else {
+			run = 1;
+		}
+	}
+
+	return { current, longest, lastEntryDate };
+}
+
+/**
+ * Counts the distinct chapters the user has logged today across every plan.
+ * Used by the daily-goal progress ring.
+ */
+export async function getChaptersLoggedToday(userId: string, dateIso: string): Promise<number> {
+	const rows = await db
+		.select({
+			chapterStart: readingLogs.chapterStart,
+			chapterEnd: readingLogs.chapterEnd,
+			bookId: planBooks.bookId,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.where(and(eq(plans.userId, userId), sql`${readingLogs.loggedAt} = ${dateIso}::date`));
+
+	const seen = new Set<string>();
+	for (const row of rows) {
+		for (let ch = row.chapterStart; ch <= row.chapterEnd; ch += 1) {
+			seen.add(`${row.bookId}:${ch}`);
+		}
+	}
+	return seen.size;
+}
+
+export async function getUserDailyGoal(userId: string): Promise<number | null> {
+	const row = await db.query.user.findFirst({
+		where: eq(user.id, userId),
+		columns: { dailyGoalChapters: true },
+	});
+	return row?.dailyGoalChapters ?? null;
+}
+
+export async function setUserDailyGoal(
+	userId: string,
+	dailyGoalChapters: number | null,
+): Promise<number | null> {
+	const [updated] = await db
+		.update(user)
+		.set({ dailyGoalChapters })
+		.where(eq(user.id, userId))
+		.returning({ dailyGoalChapters: user.dailyGoalChapters });
+
+	return updated?.dailyGoalChapters ?? null;
 }
 
 export async function updateReadingLog(logId: string, changes: UpdateReadingLogChanges) {

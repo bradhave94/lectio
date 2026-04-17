@@ -4,13 +4,19 @@ import { useLogReading } from "@lectio/components/LogReadingProvider";
 import { NewPlanButton } from "@lectio/components/NewPlanButton";
 import { PlanCard } from "@lectio/components/PlanCard";
 import { ReadingActivityFeed } from "@lectio/components/ReadingActivityFeed";
+import { ReadingHeatmap } from "@lectio/components/ReadingHeatmap";
+import { StatsRow } from "@lectio/components/StatsRow";
 import { VerseOfDayBanner } from "@lectio/components/VerseOfDayBanner";
 import {
 	useDeletePlanMutation,
 	useLectioPlansQuery,
+	useStatsActivityQuery,
 	useUserRecentReadingLogsQuery,
 	type PlansListResponse,
 	type RecentLogsResponse,
+	type StatsActivityResponse,
+	type StatsDailyGoalResponse,
+	type StatsStreakResponse,
 	type VerseOfDayResponse,
 } from "@lectio/hooks/use-lectio";
 import {
@@ -31,6 +37,9 @@ interface LectioHomeProps {
 	initialArchivedPlans: PlansListResponse;
 	initialRecentLogs: RecentLogsResponse;
 	verseOfDay: VerseOfDayResponse;
+	initialStreak: StatsStreakResponse;
+	initialActivity: StatsActivityResponse;
+	initialDailyGoal: StatsDailyGoalResponse;
 }
 
 export function LectioHome({
@@ -38,6 +47,9 @@ export function LectioHome({
 	initialArchivedPlans,
 	initialRecentLogs,
 	verseOfDay,
+	initialStreak,
+	initialActivity,
+	initialDailyGoal,
 }: LectioHomeProps) {
 	const t = useTranslations("lectio.home");
 	const tToast = useTranslations("lectio.toast");
@@ -53,6 +65,8 @@ export function LectioHome({
 	const allPlans = allPlansQuery.data ?? [];
 	const archivedPlans = allPlans.filter((plan) => plan.archivedAt !== null);
 	const recentLogs = recentLogsQuery.data ?? [];
+	const activityQuery = useStatsActivityQuery(initialActivity);
+	const activity = activityQuery.data ?? initialActivity;
 
 	const handleDelete = (planId: string) => {
 		confirm({
@@ -90,6 +104,15 @@ export function LectioHome({
 			</div>
 
 			<VerseOfDayBanner verseOfDay={verseOfDay} />
+
+			{!hasNoPlans ? (
+				<>
+					<StatsRow initialStreak={initialStreak} initialDailyGoal={initialDailyGoal} />
+					<Card className="p-4 sm:p-5">
+						<ReadingHeatmap data={activity} />
+					</Card>
+				</>
+			) : null}
 
 			{hasNoPlans ? (
 				<Card className="p-10 space-y-3 text-center">

@@ -1,6 +1,9 @@
 import { getSession } from "@auth/lib/server";
 import { ORPCError } from "@orpc/client";
 import { getPlanBuilderProcedure } from "@repo/api/modules/lectio/procedures/get-plan-builder";
+import { getStatsActivityProcedure } from "@repo/api/modules/lectio/procedures/get-stats-activity";
+import { getStatsDailyGoalProcedure } from "@repo/api/modules/lectio/procedures/get-stats-daily-goal";
+import { getStatsStreakProcedure } from "@repo/api/modules/lectio/procedures/get-stats-streak";
 import { getVerseOfDayProcedure } from "@repo/api/modules/lectio/procedures/get-verse-of-day";
 import { listPlansProcedure } from "@repo/api/modules/lectio/procedures/list-plans";
 import { listRecentPlanLogsProcedure } from "@repo/api/modules/lectio/procedures/list-recent-plan-logs";
@@ -13,6 +16,9 @@ import type {
 	PlanRecentLogsResponse,
 	PlansListResponse,
 	RecentLogsResponse,
+	StatsActivityResponse,
+	StatsDailyGoalResponse,
+	StatsStreakResponse,
 	VerseOfDayResponse,
 } from "../hooks/use-lectio";
 
@@ -93,3 +99,30 @@ export const loadPlanRecentReadingLogs = cache(
 		return callable({ planId, limit });
 	},
 );
+
+export const loadStatsStreak = cache(async (): Promise<StatsStreakResponse> => {
+	const session = await getSession();
+	if (!session) throw new ORPCError("UNAUTHORIZED");
+	const callable = getStatsStreakProcedure.callable({
+		context: { headers: await headers() },
+	});
+	return callable({});
+});
+
+export const loadStatsActivity = cache(async (): Promise<StatsActivityResponse> => {
+	const session = await getSession();
+	if (!session) throw new ORPCError("UNAUTHORIZED");
+	const callable = getStatsActivityProcedure.callable({
+		context: { headers: await headers() },
+	});
+	return callable({});
+});
+
+export const loadStatsDailyGoal = cache(async (): Promise<StatsDailyGoalResponse> => {
+	const session = await getSession();
+	if (!session) throw new ORPCError("UNAUTHORIZED");
+	const callable = getStatsDailyGoalProcedure.callable({
+		context: { headers: await headers() },
+	});
+	return callable({});
+});

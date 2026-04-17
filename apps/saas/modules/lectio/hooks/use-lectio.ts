@@ -27,6 +27,9 @@ function plansListKey(includeArchived: boolean) {
  * Invalidates every cache that depends on a user's reading logs. We use the
  * root query keys so consumers with different inputs (e.g. journal at
  * limit=200 vs home at limit=50) all refetch together.
+ *
+ * Also invalidates the stats namespace so the streak / heatmap / daily-goal
+ * widgets on the home page refresh after a log mutation.
  */
 async function invalidateReadingLogCaches(queryClient: ReturnType<typeof useQueryClient>) {
 	await Promise.all([
@@ -35,6 +38,7 @@ async function invalidateReadingLogCaches(queryClient: ReturnType<typeof useQuer
 		queryClient.invalidateQueries({ queryKey: orpc.lectio.plans.builder.key() }),
 		queryClient.invalidateQueries({ queryKey: orpc.lectio.plans.recentLogs.key() }),
 		queryClient.invalidateQueries({ queryKey: orpc.lectio.plans.list.key() }),
+		queryClient.invalidateQueries({ queryKey: orpc.lectio.stats.key() }),
 	]);
 }
 
@@ -484,6 +488,47 @@ export function useDeleteReadingLogMutation(planId: string, planBookId: string) 
 			},
 			onSettled: async () => {
 				await invalidateReadingLogCaches(queryClient);
+			},
+		}),
+	);
+}
+
+export type StatsStreakResponse = Awaited<ReturnType<typeof orpc.lectio.stats.streak.call>>;
+export type StatsActivityResponse = Awaited<ReturnType<typeof orpc.lectio.stats.activity.call>>;
+export type StatsDailyGoalResponse = Awaited<ReturnType<typeof orpc.lectio.stats.dailyGoal.call>>;
+
+export function useStatsStreakQuery(initialData?: StatsStreakResponse) {
+	return useQuery({
+		...orpc.lectio.stats.streak.queryOptions({ input: {} }),
+		initialData,
+	});
+}
+
+export function useStatsActivityQuery(initialData?: StatsActivityResponse) {
+	return useQuery({
+		...orpc.lectio.stats.activity.queryOptions({ input: {} }),
+		initialData,
+	});
+}
+
+export function useStatsDailyGoalQuery(initialData?: StatsDailyGoalResponse) {
+	return useQuery({
+		...orpc.lectio.stats.dailyGoal.queryOptions({ input: {} }),
+		initialData,
+	});
+}
+
+export function useSetDailyGoalMutation() {
+	const queryClient = useQueryClient();
+	const t = useTranslations("lectio.toast");
+
+	return useMutation(
+		orpc.lectio.stats.setDailyGoal.mutationOptions({
+			onError: () => {
+				toastError(t("saveError"));
+			},
+			onSettled: async () => {
+				await queryClient.invalidateQueries({ queryKey: orpc.lectio.stats.key() });
 			},
 		}),
 	);

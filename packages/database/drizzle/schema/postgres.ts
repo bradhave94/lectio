@@ -60,6 +60,7 @@ export const user = pgTable("user", {
 	paymentsCustomerId: text("paymentsCustomerId"),
 	locale: text("locale"),
 	lastActiveOrganizationId: text("lastActiveOrganizationId"),
+	dailyGoalChapters: integer("daily_goal_chapters"),
 });
 
 export const session = pgTable(

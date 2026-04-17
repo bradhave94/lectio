@@ -884,6 +884,32 @@
 			"hint": "Type, click, or shift-click to select a range",
 			"count": "{count, plural, one {# chapter} other {# chapters}}",
 			"invalid": "Could not parse the chapter list. Try \"1, 3, 5-7\"."
+		},
+		"stats": {
+			"streak": {
+				"title": "Streak",
+				"currentDays": "{count, plural, =0 {No streak} one {# day} other {# days}}",
+				"longest": "Longest: {count, plural, one {# day} other {# days}}"
+			},
+			"dailyGoal": {
+				"title": "Daily goal",
+				"ringTitle": "Daily goal progress",
+				"reached": "Goal reached today 🎉",
+				"progress": "{today} of {goal} chapters today",
+				"notSet": "No daily goal set yet.",
+				"setGoal": "Set goal",
+				"update": "Update goal",
+				"inputLabel": "Chapters per day",
+				"save": "Save",
+				"clear": "Clear goal"
+			}
+		},
+		"heatmap": {
+			"title": "Reading activity",
+			"totalEntries": "{count, plural, one {# entry in the last year} other {# entries in the last year}}",
+			"cellLabel": "{date}: {count, plural, =0 {no entries} one {# entry} other {# entries}}",
+			"less": "Less",
+			"more": "More"
 		}
 	}
 }
