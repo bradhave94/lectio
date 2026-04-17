@@ -1,5 +1,6 @@
 "use client";
 
+import { ChapterPicker, rangesFromChapters } from "@lectio/components/ChapterPicker";
 import {
 	useBookChaptersQuery,
 	useLectioPlansQuery,
@@ -7,7 +8,6 @@ import {
 	usePlanBuilderQuery,
 } from "@lectio/hooks/use-lectio";
 import { colorTokens } from "@lectio/lib/constants";
-import { formatChapterListLabel } from "@lectio/lib/reading-log";
 import {
 	Button,
 	cn,
@@ -27,7 +27,7 @@ import {
 	Textarea,
 } from "@repo/ui";
 import { toastError, toastSuccess } from "@repo/ui/components/toast";
-import { BookOpenIcon, CheckIcon } from "lucide-react";
+import { BookOpenIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
@@ -38,88 +38,12 @@ interface LogReadingDialogProps {
 	defaultPlanBookId?: string;
 }
 
-interface ChapterRange {
-	start: number;
-	end: number;
-}
-
 function getTodayDateString() {
 	const now = new Date();
 	const year = now.getFullYear();
 	const month = `${now.getMonth() + 1}`.padStart(2, "0");
 	const day = `${now.getDate()}`.padStart(2, "0");
 	return `${year}-${month}-${day}`;
-}
-
-/**
- * Parses a free-form chapter list, e.g. `"1, 3, 5-7"` into a list of inclusive
- * chapter ranges. Returns `null` if the input is malformed (so the caller can
- * highlight the input).
- */
-function parseChapterExpression(input: string): ChapterRange[] | null {
-	const trimmed = input.trim();
-	if (!trimmed) {
-		return [];
-	}
-
-	const tokens = trimmed
-		.split(/[,\s]+/)
-		.map((token) => token.trim())
-		.filter(Boolean);
-
-	const ranges: ChapterRange[] = [];
-	for (const token of tokens) {
-		const rangeMatch = token.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
-		if (rangeMatch) {
-			const start = Number.parseInt(rangeMatch[1], 10);
-			const end = Number.parseInt(rangeMatch[2], 10);
-			if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start) {
-				return null;
-			}
-			ranges.push({ start, end });
-			continue;
-		}
-
-		if (!/^\d+$/.test(token)) {
-			return null;
-		}
-		const chapter = Number.parseInt(token, 10);
-		if (!Number.isInteger(chapter) || chapter < 1) {
-			return null;
-		}
-		ranges.push({ start: chapter, end: chapter });
-	}
-
-	return ranges.sort((a, b) => a.start - b.start || a.end - b.end);
-}
-
-function chaptersFromRanges(ranges: ChapterRange[]): number[] {
-	const set = new Set<number>();
-	for (const range of ranges) {
-		for (let ch = range.start; ch <= range.end; ch += 1) {
-			set.add(ch);
-		}
-	}
-	return Array.from(set).sort((a, b) => a - b);
-}
-
-function rangesFromChapters(chapters: number[]): ChapterRange[] {
-	if (chapters.length === 0) {
-		return [];
-	}
-	const sorted = Array.from(new Set(chapters)).sort((a, b) => a - b);
-	const result: ChapterRange[] = [];
-	let current = { start: sorted[0], end: sorted[0] };
-	for (let i = 1; i < sorted.length; i += 1) {
-		if (sorted[i] === current.end + 1) {
-			current.end = sorted[i];
-			continue;
-		}
-		result.push(current);
-		current = { start: sorted[i], end: sorted[i] };
-	}
-	result.push(current);
-	return result;
 }
 
 export function LogReadingDialog({
@@ -137,8 +61,6 @@ export function LogReadingDialog({
 	const [planId, setPlanId] = useState<string | undefined>(defaultPlanId);
 	const [planBookId, setPlanBookId] = useState<string | undefined>(defaultPlanBookId);
 	const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
-	const [chapterText, setChapterText] = useState("");
-	const [chapterTextError, setChapterTextError] = useState(false);
 	const [verseStart, setVerseStart] = useState<string>("");
 	const [verseEnd, setVerseEnd] = useState<string>("");
 	const [note, setNote] = useState("");
@@ -152,8 +74,6 @@ export function LogReadingDialog({
 		setPlanId(defaultPlanId ?? undefined);
 		setPlanBookId(defaultPlanBookId ?? undefined);
 		setSelectedChapters([]);
-		setChapterText("");
-		setChapterTextError(false);
 		setVerseStart("");
 		setVerseEnd("");
 		setNote("");
@@ -209,8 +129,6 @@ export function LogReadingDialog({
 	// Reset chapter selection whenever the book changes.
 	useEffect(() => {
 		setSelectedChapters([]);
-		setChapterText("");
-		setChapterTextError(false);
 		setVerseStart("");
 		setVerseEnd("");
 	}, [planBookId]);
@@ -234,39 +152,12 @@ export function LogReadingDialog({
 		return Array.from({ length: verseChapterMeta.verseCount }, (_, idx) => idx + 1);
 	}, [verseChapterMeta]);
 
-	const handleToggleChapter = (chapter: number) => {
-		setSelectedChapters((current) => {
-			const exists = current.includes(chapter);
-			const next = exists ? current.filter((value) => value !== chapter) : [...current, chapter];
-			next.sort((a, b) => a - b);
-			const nextRanges = rangesFromChapters(next);
-			setChapterText(formatChapterListLabel(nextRanges));
-			setChapterTextError(false);
-			return next;
-		});
-	};
-
-	const handleChapterTextChange = (value: string) => {
-		setChapterText(value);
-		const parsed = parseChapterExpression(value);
-		if (parsed === null) {
-			setChapterTextError(true);
-			return;
-		}
-
-		setChapterTextError(false);
-		const flattened = chaptersFromRanges(parsed);
-		const filtered = flattened.filter((chapter) => availableChapters.includes(chapter));
-		setSelectedChapters(filtered);
-	};
-
 	const logMutation = useLogReadingMutation();
 
 	const canSubmit =
 		!!planId &&
 		!!planBookId &&
 		selectedChapters.length > 0 &&
-		!chapterTextError &&
 		(verseStart === "" ||
 			verseEnd === "" ||
 			(isSingleChapter &&
@@ -389,54 +280,14 @@ export function LogReadingDialog({
 						</Select>
 					</div>
 
-					{/* Chapter chips + text */}
+					{/* Chapter chips + text (shift-click to select a range) */}
 					{selectedPlanBook ? (
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<Label htmlFor="log-chapter-text">
-									{t("chaptersLabel")}
-									<span className="ml-2 text-xs font-normal text-muted-foreground">
-										{t("chaptersHelper")}
-									</span>
-								</Label>
-								<span className="text-xs text-muted-foreground">
-									{t("chaptersSelected", { count: selectedChapters.length })}
-								</span>
-							</div>
-							<Input
-								id="log-chapter-text"
-								value={chapterText}
-								onChange={(event) => handleChapterTextChange(event.target.value)}
-								placeholder="1, 3, 5-7"
-								className={cn(chapterTextError && "border-destructive")}
-							/>
-							{chapterTextError ? (
-								<p className="text-xs text-destructive">{t("invalidRange")}</p>
-							) : null}
-							<div className="gap-1.5 pt-1 sm:grid-cols-10 grid grid-cols-8">
-								{availableChapters.map((chapter) => {
-									const selected = selectedChapters.includes(chapter);
-									return (
-										<button
-											key={chapter}
-											type="button"
-											onClick={() => handleToggleChapter(chapter)}
-											className={cn(
-												"h-9 text-sm font-medium relative rounded-md border transition-colors",
-												selected
-													? "border-primary bg-primary text-primary-foreground"
-													: "border-border bg-background hover:bg-accent",
-											)}
-										>
-											{chapter}
-											{selected ? (
-												<CheckIcon className="right-0.5 top-0.5 size-2.5 absolute opacity-70" />
-											) : null}
-										</button>
-									);
-								})}
-							</div>
-						</div>
+						<ChapterPicker
+							availableChapters={availableChapters}
+							selected={selectedChapters}
+							onChange={setSelectedChapters}
+							resetKey={selectedPlanBook.id}
+						/>
 					) : null}
 
 					{/* Verse range (single chapter only) */}
