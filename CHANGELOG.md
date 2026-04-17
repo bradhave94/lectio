@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-04-16
+
+### Lectio re-imagining
+
+#### App experience
+
+- **Journal-first home**: the account start page is now `LectioHome`, leading with a feed of recent reading entries across every plan, plus a compact card per plan and a one-click `Log reading` action. The legacy "All books" accordion and the dashboard verse-banner-only layout are gone.
+- **Plan journal page**: `/plans/[id]` now shows a per-plan journal — plan progress strip, per-book progress bars, and a chronological feed of every reading entry. The standalone `/progress` route has been removed and folded in.
+- **Plan editor focused on setup**: `/plans/[id]/edit` no longer captures status, notes, or reading logs. It only manages plan basics, color/icon, schedule (start/target/cadence), and the books in the plan with optional chapter scope.
+- **Multi-step composer**: creating a plan walks through Basics → Personalize → Books in a single dialog, supports color/icon/dates/cadence, and can pre-add several books at once. After creating, the user lands on the journal, not the editor.
+- **Universal `Log reading` dialog**: a shared `LogReadingProvider` exposes a global dialog reachable from anywhere in Lectio. One submission can log multiple chapters (e.g. `1, 3, 5-7`), supports per-submission verse range when a single chapter is selected, plus a shared note and date.
+- **Auto-status**: a plan-book's status is now computed server-side from its reading logs (`not_started` / `in_progress` / `completed`). A new `statusManual` flag lets users opt into a manual override.
+
+#### Database
+
+- New columns on `plans`: `color`, `icon`, `start_date`, `target_end_date`, `cadence`, `archived_at`.
+- New columns on `plan_books`: `chapter_start`, `chapter_end`, `status_manual`, with a chapter-scope check constraint.
+- `reading_logs.submission_id` groups multi-chapter submissions and a new trigger keeps `plans.updated_at` accurate when logs change.
+
+#### API
+
+- `lectio.readingLogs.log` replaces the single-chapter create endpoint and accepts a list of chapter ranges.
+- `lectio.planBooks.addMany` replaces the single-book add endpoint and supports chapter scope per book.
+- New `lectio.plans.recentLogs` and `lectio.readingLogs.recent` endpoints power the per-plan and user-wide journal feeds.
+- `lectio.plans.update` and `lectio.plans.create` accept the new styling/schedule fields and the archive toggle.
+- The standalone `lectio.plans.progress` endpoint is dropped — aggregate stats live on the builder payload.
+
+#### Translations
+
+- The whole `lectio.*` block in `en/de/es/fr` `saas.json` has been rewritten around the new Home / Editor / Journal / Composer / Log-Dialog surfaces.
+
 ## 2026-03-30 v3.3.0
 
 ### Added
