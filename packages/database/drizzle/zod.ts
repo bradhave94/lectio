@@ -75,6 +75,21 @@ export const PlanBookUpdateSchema = createUpdateSchema(planBooks, {
 	id: z.uuid(),
 });
 export type PlanBook = typeof planBooks.$inferSelect;
+
+export const PLAN_COLOR_VALUES = ["emerald", "sky", "violet", "amber", "rose", "slate"] as const;
+export type PlanColor = (typeof PLAN_COLOR_VALUES)[number];
+
+export const PLAN_ICON_VALUES = [
+	"BookOpen",
+	"Sparkles",
+	"Sun",
+	"Flame",
+	"Mountain",
+	"Leaf",
+	"Compass",
+	"Heart",
+] as const;
+export type PlanIcon = (typeof PLAN_ICON_VALUES)[number];
 export const ReadingLogSchema = createSelectSchema(readingLogs);
 export const ReadingLogInsertSchema = createInsertSchema(readingLogs);
 export const ReadingLogUpdateSchema = createUpdateSchema(readingLogs, {

@@ -1,5 +1,107 @@
 # Changelog
 
+## 2026-04-17 — Lectio rich-text note editor
+
+- New `NoteEditor` component built on Tiptap 3 (StarterKit + Link + Placeholder) replaces the plain textarea everywhere notes are edited. Toolbar exposes bold, italic, H1–H3, lists, blockquote, inline + block code, link insertion (with prompt + unset), horizontal rule, and undo/redo. Standard keyboard shortcuts (Cmd-B/I/K/Z) work out of the box.
+- Notes still persist as Markdown thanks to a tiny round-trip helper: incoming Markdown is parsed via `marked` for Tiptap to render, outgoing HTML is serialised back with `turndown` (atx headings, fenced code, dash bullets, soft `<br>` → trailing-space line breaks). The existing `NoteMarkdown` reader keeps showing the same content read-only across the journal, the per-book expansion, and the activity feed.
+- Added deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-placeholder`, `marked`, `turndown` (+ types).
+- New i18n block under `lectio.editor.note.*` mirrored to en/de/es/fr.
+
+## 2026-04-17 — Lectio habits + Markdown + full-text search + bug fixes
+
+### Bug fixes
+
+- Logging or editing a reading entry on `/journal` now updates the list immediately. Reading-log mutations invalidate caches at the query root so consumers with different inputs (home at limit=50, journal at limit=200, per-plan-book lists) all refetch together.
+- Clicking an entry on `/journal` no longer blurs the screen. The mobile inspector `Sheet` is now only mounted when the viewport is below the `lg` breakpoint via a new `useIsBelowLg` hook, so the desktop view never spawns a phantom radix overlay.
+- Journal inspector defaults to a read-only view: passage label, plain-text date, and the note rendered with Markdown. An `Edit` button switches to the existing form; saving returns you to view mode.
+
+### Habit features
+
+- New `lectio.stats.streak` procedure returning current + longest consecutive-day reading streaks.
+- New `lectio.stats.activity` procedure returning a zero-filled per-day activity series for the trailing year.
+- New `lectio.stats.dailyGoal` + `lectio.stats.setDailyGoal` procedures backed by a new `user.daily_goal_chapters` column.
+- Home page renders a `StatsRow` (streak card + daily goal progress ring with editable goal) and a GitHub-style `ReadingHeatmap` of the last year of activity. Reading-log mutations invalidate the stats namespace so widgets refresh without a reload.
+
+### Markdown notes
+
+- New `NoteMarkdown` component built on `react-markdown` + `remark-gfm` + `rehype-sanitize`. Strips embedded HTML/images, opens links in a new tab, and styles the rendered output with inline tailwind utilities (no `prose` plugin needed).
+- Notes render as Markdown in: journal inspector view mode, the per-book expansion list on the plan journal, and recent activity feed cards.
+
+### Full-text search
+
+- Added `reading_logs.note_tsv` (a Postgres generated `tsvector`) + a GIN index in migration `0004`.
+- `lectio.readingLogs.recent` accepts an optional `search` argument that combines `websearch_to_tsquery` against the tsvector with case-insensitive `ILIKE` matches against book + plan titles.
+- Journal search box debounces (300ms) and switches to server-side filtering when populated.
+
+### Platform debt
+
+- Dropped `plan_books.resource_url`, `resource_label`, `resource_type` and the matching check constraint (migration `0004`/`0005`).
+- Removed the unused `BSB_BIBLE_ID` export from `apps/saas/modules/lectio/lib/constants.ts`.
+
+## 2026-04-17 — Lectio editor + shift-click + journal redesign
+
+### Editing reading entries
+
+- New `lectio.readingLogs.update` procedure (`PATCH /lectio/reading-logs/{id}`). Supports moving an entry to a different plan-book and editing chapter range, verse range, note, and date. Recomputes auto-status on both source and destination plan-books after a move.
+- New `useUpdateReadingLogMutation` client hook with broad cache invalidation so all open journals refresh.
+
+### Shift-click range select
+
+- Extracted reusable `ChapterPicker` component with chip grid + free-form text mirror.
+- Click a chip to anchor; **shift-click another chip** to select every chapter in between (additive). Used by both the Log Reading dialog and the new Journal inspector.
+
+### Journal page redesign
+
+- `/journal` now renders as a two-column "code editor" layout: left rail of every reading entry (plan icon, passage label, date, note preview), right pane is an inspector that edits the selected entry inline.
+- Inspector edits: plan, plan-book (move target), chapter range, verse range, note, date. Save / Cancel / Delete actions visible at the bottom; an "Unsaved changes" hint appears when the form is dirty.
+- Filter bar above: search across notes/books/plans, plan + book chip rows, date-range popover with quick presets (Last 7 days, Last 30 days, This month, All time), sort toggle, Clear button.
+- Mobile (<lg): collapses to a single column; tapping an entry opens the inspector inside a Sheet.
+- New i18n block under `lectio.journalPage.*` and `lectio.chapterPicker.*` mirrored to en/de/es/fr.
+
+## 2026-04-17 — Lectio polish pass
+
+- **Dedicated `/journal` page** with plan + book + date-range filters and a sort toggle. Reading entries are listed across every plan with notes inline and a delete button per entry.
+- **Dedicated `/plans` page** rendered as a table with row actions (Open journal / Edit / Archive / Unarchive / Delete) and a `New plan` button.
+- **Per-book expandable log list** on the plan journal page lets users review and delete individual reading log rows under each book.
+- **Floating `+` action button** is mounted globally inside `LogReadingProvider`, so the Log Reading dialog is reachable from every Lectio page (hidden when the dialog is open).
+- **Sidebar updates**: rename Start → Home; add Plans and Journal entries.
+- **Real verse of the day**: `getVerseOfDay` now also fetches the passage content from `/v1/bibles/3034/passages/{id}`. The Home banner renders the verse text + reference + Bible.com link.
+- **New plan flow** no longer opens a modal — it creates a placeholder plan and routes you straight to `/plans/<id>/edit`.
+- **Plan card visual cleanup**: drop the chunky `border-l-4` accent in favor of a tinted icon avatar; the whole card is now a single `Link` for easier navigation; "No description yet" placeholder is hidden when empty.
+- **Book picker quick-add**: "Select all", "Old Testament", "New Testament", and "Clear" buttons in the editor's book picker.
+- Translations: new keys for `app.menu.{home,plans,journal}`, `lectio.{plansIndex,journalPage,fab,verseOfDay.contentUnavailable,journal.expand/collapse/bookEntriesEmpty/deleteEntry,editor.bookPicker.{selectAll,selectOT,selectNT,clear},composer.untitled}` mirrored across `en/de/es/fr`.
+
+## 2026-04-16
+
+### Lectio re-imagining
+
+#### App experience
+
+- **Journal-first home**: the account start page is now `LectioHome`, leading with a feed of recent reading entries across every plan, plus a compact card per plan and a one-click `Log reading` action. The legacy "All books" accordion and the dashboard verse-banner-only layout are gone.
+- **Plan journal page**: `/plans/[id]` now shows a per-plan journal — plan progress strip, per-book progress bars, and a chronological feed of every reading entry. The standalone `/progress` route has been removed and folded in.
+- **Plan editor focused on setup**: `/plans/[id]/edit` no longer captures status, notes, or reading logs. It only manages plan basics, color/icon, schedule (start/target/cadence), and the books in the plan with optional chapter scope.
+- **Multi-step composer**: creating a plan walks through Basics → Personalize → Books in a single dialog, supports color/icon/dates/cadence, and can pre-add several books at once. After creating, the user lands on the journal, not the editor.
+- **Universal `Log reading` dialog**: a shared `LogReadingProvider` exposes a global dialog reachable from anywhere in Lectio. One submission can log multiple chapters (e.g. `1, 3, 5-7`), supports per-submission verse range when a single chapter is selected, plus a shared note and date.
+- **Auto-status**: a plan-book's status is now computed server-side from its reading logs (`not_started` / `in_progress` / `completed`). A new `statusManual` flag lets users opt into a manual override.
+
+#### Database
+
+- New columns on `plans`: `color`, `icon`, `start_date`, `target_end_date`, `cadence`, `archived_at`.
+- New columns on `plan_books`: `chapter_start`, `chapter_end`, `status_manual`, with a chapter-scope check constraint.
+- `reading_logs.submission_id` groups multi-chapter submissions and a new trigger keeps `plans.updated_at` accurate when logs change.
+
+#### API
+
+- `lectio.readingLogs.log` replaces the single-chapter create endpoint and accepts a list of chapter ranges.
+- `lectio.planBooks.addMany` replaces the single-book add endpoint and supports chapter scope per book.
+- New `lectio.plans.recentLogs` and `lectio.readingLogs.recent` endpoints power the per-plan and user-wide journal feeds.
+- `lectio.plans.update` and `lectio.plans.create` accept the new styling/schedule fields and the archive toggle.
+- The standalone `lectio.plans.progress` endpoint is dropped — aggregate stats live on the builder payload.
+
+#### Translations
+
+- The whole `lectio.*` block in `en/de/es/fr` `saas.json` has been rewritten around the new Home / Editor / Journal / Composer / Log-Dialog surfaces.
+
 ## 2026-03-30 v3.3.0
 
 ### Added

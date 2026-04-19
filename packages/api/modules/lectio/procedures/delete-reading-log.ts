@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/client";
-import { deleteReadingLog, getReadingLogById } from "@repo/database";
+import { deleteReadingLog, getReadingLogById, recomputePlanBookStatus } from "@repo/database";
 import { z } from "zod";
 
 import { protectedProcedure } from "../../../orpc/procedures";
@@ -32,7 +32,10 @@ export const deleteReadingLogProcedure = protectedProcedure
 			throw new ORPCError("NOT_FOUND");
 		}
 
+		await recomputePlanBookStatus(log.planBookId);
+
 		return {
 			id: deleted.id,
+			planBookId: log.planBookId,
 		};
 	});

@@ -77,7 +77,9 @@
 			"navigationTitle": "Menu",
 			"openNavigation": "Open navigation",
 			"organizationSettings": "Organization settings",
-			"start": "Start"
+			"home": "Home",
+			"plans": "Plans",
+			"journal": "Journal"
 		},
 		"userMenu": {
 			"accountSettings": "Account settings",
@@ -630,166 +632,304 @@
 			"in_progress": "In progress",
 			"completed": "Completed"
 		},
-		"resourceTypes": {
-			"reading_plan": "Reading plan",
-			"video": "Video",
-			"podcast": "Podcast",
-			"book": "Book",
-			"article": "Article",
-			"other": "Other"
-		},
-		"read": {
-			"titleFallback": "Reading plan",
-			"backToPlans": "Back to my plans",
-			"viewProgress": "Progress",
-			"editPlan": "Edit plan",
-			"overallProgress": "Overall progress",
-			"booksCompleted": "{completed} of {total} books completed",
-			"suggestedLabel": "Suggested next",
-			"logReading": "Log reading",
-			"lastLogged": "Last: {passage} · {date}",
-			"noLogsYet": "No reading logged for this book yet.",
-			"otherBooks": "All books",
-			"recentActivity": "Recent activity",
-			"recentEmpty": "No reading entries yet. Pick a book above to log your first session.",
-			"emptyPlanTitle": "No books in this plan",
-			"emptyPlanDescription": "Add books in the plan editor to start logging your reading here.",
-			"addBooks": "Add books"
-		},
-		"dashboard": {
-			"title": "My plans",
-			"subtitle": "Build and track your custom Bible reading journey.",
-			"newPlan": "New plan",
-			"emptyTitle": "No plans yet",
-			"emptyDescription": "Create your first custom Bible plan to get started.",
-			"noDescription": "No description yet.",
-			"card": {
-				"booksProgress": "{completed} of {total} books",
-				"updatedAt": "Updated {date}",
-				"openPlan": "Open plan",
-				"viewProgress": "Progress"
-			},
-			"delete": {
-				"title": "Delete plan",
-				"message": "Are you sure you want to delete this plan? This action cannot be undone.",
-				"confirm": "Delete"
-			}
-		},
-		"newPlanDialog": {
-			"title": "Create a new plan",
-			"description": "Give your custom plan a title and optional description.",
-			"titleLabel": "Title",
-			"titlePlaceholder": "Acts + Romans study",
-			"descriptionLabel": "Description (optional)",
-			"descriptionPlaceholder": "What is this plan focused on?",
-			"cancel": "Cancel",
-			"create": "Create plan"
-		},
 		"verseOfDay": {
 			"title": "Verse of the day",
 			"openBibleCom": "Open on Bible.com",
-			"unavailable": "Verse of the day is unavailable right now."
+			"unavailable": "Verse of the day is unavailable right now.",
+			"contentUnavailable": "The verse text is not available at the moment."
 		},
-		"builder": {
-			"titleFallback": "Plan builder",
-			"backToPlans": "Back to plans",
-			"backToReading": "Back to reading",
-			"viewProgress": "View progress",
-			"plan": {
-				"titleLabel": "Plan title",
-				"descriptionLabel": "Description",
-				"descriptionPlaceholder": "What is this plan focused on?",
-				"save": "Save plan"
+		"home": {
+			"title": "Lectio",
+			"subtitle": "Your Bible reading journal.",
+			"newPlan": "New plan",
+			"logReading": "Log reading",
+			"plansTitle": "Active plans",
+			"recentTitle": "Recent activity",
+			"archivedTitle": "Archived plans ({count})",
+			"emptyTitle": "Start your first plan",
+			"emptyDescription": "Create a plan, log what you read, and watch your progress build.",
+			"delete": {
+				"title": "Delete plan",
+				"message": "This permanently removes the plan and every reading entry under it. This cannot be undone.",
+				"confirm": "Delete"
 			},
-			"progress": {
-				"title": "Books completed",
-				"booksCompleted": "{completed} of {total} completed",
-				"openProgressView": "Progress view"
+			"card": {
+				"noDescription": "No description yet.",
+				"bookProgress": "{completed} / {total} books",
+				"chaptersLogged": "{count, plural, one {# chapter logged} other {# chapters logged}}",
+				"updatedAt": "Updated {date}",
+				"log": "Log",
+				"menu": "Plan actions",
+				"archive": "Archive plan",
+				"unarchive": "Unarchive plan",
+				"delete": "Delete plan"
+			}
+		},
+		"feed": {
+			"empty": "No reading logged yet. Use \"Log reading\" to record your first entry.",
+			"delete": "Delete entry"
+		},
+		"composer": {
+			"untitled": "Untitled plan"
+		},
+		"editor": {
+			"titleFallback": "Edit plan",
+			"backToJournal": "Back to plan",
+			"save": "Save plan",
+			"basicsTitle": "Plan basics",
+			"booksTitle": "Books in this plan",
+			"booksHint": "Drag to reorder. Edit chapter scope to focus on a subset.",
+			"booksEmpty": "No books in this plan yet. Pick some from the panel on the left.",
+			"fields": {
+				"title": "Title",
+				"description": "Description",
+				"descriptionPlaceholder": "What is this plan focused on?",
+				"color": "Color",
+				"icon": "Icon",
+				"startDate": "Start date",
+				"targetEnd": "Target end date",
+				"cadence": "Cadence",
+				"cadencePlaceholder": "Daily · Mon/Wed/Fri · Weekly"
 			},
 			"bookPicker": {
-				"title": "Book picker",
+				"title": "Add books",
 				"searchPlaceholder": "Search books...",
+				"empty": "No books match your search.",
+				"chaptersCount": "{count} chapters",
+				"inPlan": "In plan",
+				"addSelected": "Add {count} to plan",
 				"tabs": {
 					"all": "All",
 					"ot": "OT",
 					"nt": "NT"
 				},
-				"alreadyAdded": "Added",
-				"add": "Add",
-				"empty": "No books match your search.",
-				"chaptersCount": "{count} chapters"
+				"selectAll": "Select all",
+				"selectOT": "Old Testament",
+				"selectNT": "New Testament",
+				"clear": "Clear"
 			},
-			"planList": {
-				"title": "Plan",
-				"emptyTitle": "No books added yet",
-				"emptyDescription": "Use the picker to add books to this plan.",
-				"resourcePrefix": "Resource:"
+			"scope": {
+				"whole": "Full book",
+				"range": "Chapters {start}–{end}",
+				"edit": "Scope",
+				"wholeBook": "Whole book",
+				"start": "Start",
+				"end": "End",
+				"cancel": "Cancel",
+				"save": "Save"
 			},
-			"drawer": {
-				"subtitle": "Book #{position} in your plan",
-				"logVariantSubtitle": "Log what you read for this book.",
-				"save": "Save changes",
-				"readOnBibleCom": "Read on Bible.com",
-				"resource": {
-					"title": "Resource",
-					"open": "Open resource",
-					"url": "Resource URL",
-					"label": "Resource label",
-					"labelPlaceholder": "Tim Keller podcast series",
-					"type": "Resource type",
-					"none": "None"
-				},
-				"status": {
-					"title": "Status",
-					"startedAt": "Started {date}"
-				},
-				"notes": {
-					"title": "Notes",
-					"placeholder": "Add notes about this book..."
-				},
-				"readingLog": {
-					"title": "Reading log",
-					"count": "{count, plural, one {# entry} other {# entries}}",
-					"chapter": "Chapter",
-					"date": "Date",
-					"verseFrom": "Verses from",
-					"verseTo": "Verses to",
-					"optional": "Optional",
-					"note": "Note",
-					"notePlaceholder": "Reflection...",
-					"add": "Add entry",
-					"empty": "No reading entries yet.",
-					"delete": "Delete entry",
-					"selectChapter": "Select chapter",
-					"chapterRequired": "Please select a chapter first.",
-					"verseRangeIncomplete": "Please provide both verse start and verse end.",
-					"verseRangeInvalid": "Verse start must be less than or equal to verse end."
-				},
-				"remove": {
-					"action": "Remove from plan",
-					"confirmTitle": "Remove book from plan",
-					"confirmMessage": "Are you sure you want to remove this book from the plan?",
-					"confirmAction": "Remove"
-				}
+			"removeBook": {
+				"title": "Remove from plan?",
+				"message": "Remove {name} from this plan? Existing reading logs will be deleted.",
+				"confirm": "Remove",
+				"aria": "Remove book"
+			},
+			"note": {
+				"placeholder": "Reflection, insight, prayer...",
+				"ariaLabel": "Note editor",
+				"bold": "Bold",
+				"italic": "Italic",
+				"bulletList": "Bulleted list",
+				"orderedList": "Numbered list",
+				"quote": "Quote",
+				"code": "Inline code",
+				"codeBlock": "Code block",
+				"link": "Insert link",
+				"unlink": "Remove link",
+				"linkPromptUrl": "Link URL",
+				"heading1": "Heading 1",
+				"heading2": "Heading 2",
+				"heading3": "Heading 3",
+				"divider": "Divider",
+				"undo": "Undo",
+				"redo": "Redo"
 			}
 		},
-		"progress": {
-			"title": "Plan progress",
-			"subtitle": "Track status and reading activity for every book.",
-			"backToBuilder": "Back to builder",
-			"backToPlan": "Back to plan",
+		"journal": {
+			"titleFallback": "Plan journal",
+			"backToHome": "Back to all plans",
+			"logReading": "Log reading",
+			"editPlan": "Edit plan",
+			"menu": "Plan actions",
+			"archive": "Archive plan",
+			"unarchive": "Unarchive plan",
+			"deletePlan": "Delete plan",
+			"archivedBadge": "Archived",
+			"startedOn": "Started {date}",
+			"targetOn": "Target {date}",
 			"overall": "Overall progress",
-			"completedOfTotal": "{completed} of {total} completed",
-			"notStarted": "Not started",
-			"inProgress": "In progress",
-			"completed": "Completed",
-			"chaptersLogged": "Total chapters logged",
-			"logEntries": "{count, plural, one {# log} other {# logs}}",
-			"empty": "No books in this plan yet. Add some from Edit plan to start tracking progress.",
-			"statusLabel": "Status: {status}",
-			"startedAt": "Started {date}",
-			"completedAt": "Completed {date}",
-			"latestLog": "Most recent log"
+			"chaptersCovered": "{covered} / {total} chapters",
+			"totalLogs": "Reading entries",
+			"books": "Books",
+			"emptyBooksTitle": "No books in this plan",
+			"emptyBooksHint": "Add books to start tracking your reading.",
+			"addBooks": "Add books",
+			"activity": "Activity",
+			"activityEmpty": "No reading entries yet. Use \"Log reading\" to record your first session.",
+			"log": "Log",
+			"chaptersOf": "{covered} of {total} chapters",
+			"delete": {
+				"title": "Delete plan",
+				"message": "This permanently removes the plan and every reading entry under it. This cannot be undone.",
+				"confirm": "Delete"
+			},
+			"expand": "Show entries",
+			"collapse": "Hide entries",
+			"bookEntriesEmpty": "No entries logged for this book yet.",
+			"deleteEntry": "Delete entry"
+		},
+		"logDialog": {
+			"title": "Log reading",
+			"subtitle": "Record what you read in seconds.",
+			"planLabel": "Plan",
+			"planPlaceholder": "Choose a plan",
+			"noPlans": "Create a plan first to start logging.",
+			"bookLabel": "Book",
+			"bookPlaceholder": "Choose a book",
+			"bookPlaceholderNoPlan": "Pick a plan first",
+			"bookPlaceholderEmpty": "This plan has no books yet",
+			"chaptersLabel": "Chapters",
+			"chaptersHelper": "Type or tap to select",
+			"chaptersSelected": "{count, plural, one {# chapter} other {# chapters}}",
+			"verseRangeLabel": "Verse range (optional)",
+			"verseFrom": "From",
+			"verseTo": "To",
+			"verseAny": "Whole chapter",
+			"noteLabel": "Note (optional)",
+			"notePlaceholder": "Reflection, insight, prayer...",
+			"dateLabel": "Date",
+			"submit": "Log entry",
+			"cancel": "Cancel",
+			"missingChapters": "Please select at least one chapter.",
+			"invalidRange": "Could not parse the chapter list. Try \"1, 3, 5-7\"."
+		},
+		"plansIndex": {
+			"title": "Plans",
+			"subtitle": "Manage every reading plan you have built.",
+			"bookProgress": "{completed} / {total} books",
+			"activeEmptyTitle": "No active plans yet",
+			"activeEmptyHint": "Build a plan to start tracking your reading.",
+			"archivedTitle": "Archived ({count})",
+			"columns": {
+				"plan": "Plan",
+				"progress": "Progress",
+				"chapters": "Chapters logged",
+				"updated": "Last activity",
+				"actions": "Actions"
+			},
+			"actions": {
+				"edit": "Edit",
+				"openJournal": "Open journal",
+				"archive": "Archive",
+				"unarchive": "Unarchive",
+				"delete": "Delete",
+				"more": "More actions"
+			},
+			"delete": {
+				"title": "Delete plan",
+				"message": "This permanently removes the plan and every reading entry under it.",
+				"confirm": "Delete"
+			}
+		},
+		"journalPage": {
+			"title": "Journal",
+			"subtitle": "Browse, edit, and prune every reading entry.",
+			"logReading": "Log reading",
+			"counts": "{shown} of {total}",
+			"countsBadge": "{count, plural, one {# entry} other {# entries}}",
+			"empty": "No reading entries yet.",
+			"emptyFiltered": "No entries match the current filters.",
+			"selectEmpty": "Pick an entry on the left to view or edit it.",
+			"listHeader": "Entries",
+			"inspectorHeader": "Entry",
+			"filters": {
+				"title": "Filters",
+				"open": "Filters",
+				"search": "Search notes, books, plans...",
+				"plan": "Plan",
+				"book": "Book",
+				"from": "From",
+				"to": "To",
+				"sort": "Sort",
+				"newestFirst": "Newest first",
+				"oldestFirst": "Oldest first",
+				"allPlans": "All plans",
+				"allBooks": "All books",
+				"clear": "Clear filters",
+				"dateRange": "Date range",
+				"datePresets": {
+					"last7": "Last 7 days",
+					"last30": "Last 30 days",
+					"thisMonth": "This month",
+					"all": "All time"
+				}
+			},
+			"groups": {
+				"today": "Today",
+				"yesterday": "Yesterday",
+				"thisWeek": "This week",
+				"earlier": "Earlier"
+			},
+			"inspector": {
+				"planLabel": "Plan",
+				"planBookLabel": "Book",
+				"dateLabel": "Date",
+				"verseRangeLabel": "Verse range (single chapter only)",
+				"verseAny": "Whole chapter",
+				"verseFrom": "From",
+				"verseTo": "To",
+				"noteLabel": "Note",
+				"notePlaceholder": "Reflection, insight, prayer...",
+				"save": "Save changes",
+				"cancel": "Discard changes",
+				"delete": "Delete entry",
+				"deleteConfirmTitle": "Delete entry?",
+				"deleteConfirmMessage": "This permanently removes the reading entry. This cannot be undone.",
+				"deleteConfirm": "Delete",
+				"unsaved": "Unsaved changes",
+				"moveTitle": "Move to a different plan or book",
+				"moveHint": "Changing the plan resets the book selection.",
+				"missingChapters": "Pick at least one chapter to keep.",
+				"noBooks": "This plan has no books yet — add one before moving entries here.",
+				"passage": "Passage",
+				"edit": "Edit entry",
+				"noteEmpty": "No notes for this entry yet."
+			}
+		},
+		"fab": {
+			"logReading": "Log reading"
+		},
+		"chapterPicker": {
+			"label": "Chapters",
+			"hint": "Type, click, or shift-click to select a range",
+			"count": "{count, plural, one {# chapter} other {# chapters}}",
+			"invalid": "Could not parse the chapter list. Try \"1, 3, 5-7\"."
+		},
+		"stats": {
+			"streak": {
+				"title": "Streak",
+				"currentDays": "{count, plural, =0 {No streak} one {# day} other {# days}}",
+				"longest": "Longest: {count, plural, one {# day} other {# days}}"
+			},
+			"dailyGoal": {
+				"title": "Daily goal",
+				"ringTitle": "Daily goal progress",
+				"reached": "Goal reached today 🎉",
+				"progress": "{today} of {goal} chapters today",
+				"notSet": "No daily goal set yet.",
+				"setGoal": "Set goal",
+				"update": "Update goal",
+				"inputLabel": "Chapters per day",
+				"save": "Save",
+				"clear": "Clear goal"
+			}
+		},
+		"heatmap": {
+			"title": "Reading activity",
+			"totalEntries": "{count, plural, one {# entry in the last year} other {# entries in the last year}}",
+			"cellLabel": "{date}: {count, plural, =0 {no entries} one {# entry} other {# entries}}",
+			"less": "Less",
+			"more": "More"
 		}
 	}
 }

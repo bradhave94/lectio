@@ -1,7 +1,7 @@
-import { and, asc, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "../client";
-import { bookChapters, books, planBooks, plans, readingLogs } from "../schema/postgres";
+import { bookChapters, books, planBooks, plans, readingLogs, user } from "../schema/postgres";
 
 export interface BooksListFilters {
 	testament?: "OT" | "NT";
@@ -12,96 +12,95 @@ export interface PlanCardSummary {
 	id: string;
 	title: string;
 	description: string | null;
+	color: string | null;
+	icon: string | null;
+	startDate: string | null;
+	targetEndDate: string | null;
+	cadence: string | null;
+	archivedAt: Date | null;
 	updatedAt: Date;
 	createdAt: Date;
 	totalBooks: number;
 	completedBooks: number;
+	chaptersLogged: number;
+}
+
+export interface PlanBuilderBook {
+	id: string;
+	planId: string;
+	bookId: number;
+	orderIndex: number;
+	chapterStart: number | null;
+	chapterEnd: number | null;
+	notes: string | null;
+	status: string;
+	statusManual: boolean;
+	startedAt: Date | null;
+	completedAt: Date | null;
+	createdAt: Date;
+	book: {
+		id: number;
+		usfmCode: string;
+		name: string;
+		testament: string;
+		canonOrder: number;
+		chapterCount: number;
+	};
+	logCount: number;
+	lastLoggedAt: string | null;
+	chaptersInScope: number;
+	chaptersCovered: number;
+}
+
+export interface PlanAggregateStats {
+	totalBooks: number;
+	completedBooks: number;
+	inProgressBooks: number;
+	notStartedBooks: number;
+	totalLogs: number;
+	totalChaptersLogged: number;
+	chaptersInScope: number;
+	chaptersCovered: number;
+}
+
+export interface PlanDetail {
+	id: string;
+	userId: string;
+	title: string;
+	description: string | null;
+	color: string | null;
+	icon: string | null;
+	startDate: string | null;
+	targetEndDate: string | null;
+	cadence: string | null;
+	archivedAt: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface PlanBuilderData {
-	plan: {
-		id: string;
-		title: string;
-		description: string | null;
-		updatedAt: Date;
-		createdAt: Date;
-	};
-	planBooks: Array<{
-		id: string;
-		planId: string;
-		bookId: number;
-		orderIndex: number;
-		resourceUrl: string | null;
-		resourceLabel: string | null;
-		resourceType: string | null;
-		notes: string | null;
-		status: string;
-		startedAt: Date | null;
-		completedAt: Date | null;
-		createdAt: Date;
-		book: {
-			id: number;
-			usfmCode: string;
-			name: string;
-			testament: string;
-			canonOrder: number;
-			chapterCount: number;
-		};
-		logCount: number;
-		lastLoggedAt: string | null;
-	}>;
-	stats: {
-		totalBooks: number;
-		completedBooks: number;
-		inProgressBooks: number;
-		notStartedBooks: number;
-		totalLogs: number;
-		totalChaptersLogged: number;
-	};
+	plan: PlanDetail;
+	planBooks: PlanBuilderBook[];
+	stats: PlanAggregateStats;
 }
 
-export interface PlanProgressData {
-	plan: {
-		id: string;
-		title: string;
-		description: string | null;
-		updatedAt: Date;
-		createdAt: Date;
-	};
-	stats: {
-		totalBooks: number;
-		completedBooks: number;
-		inProgressBooks: number;
-		notStartedBooks: number;
-		totalLogs: number;
-		totalChaptersLogged: number;
-	};
-	books: Array<{
-		id: string;
-		orderIndex: number;
-		status: string;
-		resourceUrl: string | null;
-		resourceLabel: string | null;
-		resourceType: string | null;
-		startedAt: Date | null;
-		completedAt: Date | null;
-		book: {
-			id: number;
-			name: string;
-			usfmCode: string;
-			chapterCount: number;
-		};
-		logCount: number;
-		mostRecentLog: {
-			id: string;
-			chapterStart: number;
-			chapterEnd: number;
-			verseStart: number | null;
-			verseEnd: number | null;
-			note: string | null;
-			loggedAt: string;
-		} | null;
-	}>;
+export interface RecentLogEntry {
+	id: string;
+	planId: string;
+	planTitle: string;
+	planColor: string | null;
+	planIcon: string | null;
+	planBookId: string;
+	bookName: string;
+	bookUsfmCode: string;
+	chapterStart: number;
+	chapterEnd: number;
+	verseStart: number | null;
+	verseEnd: number | null;
+	note: string | null;
+	loggedAt: string;
+	createdAt: Date;
+	submissionId: string | null;
 }
 
 export async function listBooks(filters: BooksListFilters = {}) {
@@ -147,6 +146,11 @@ export async function createPlan(input: {
 	userId: string;
 	title: string;
 	description?: string | null;
+	color?: string | null;
+	icon?: string | null;
+	startDate?: string | null;
+	targetEndDate?: string | null;
+	cadence?: string | null;
 }) {
 	const [created] = await db
 		.insert(plans)
@@ -154,6 +158,11 @@ export async function createPlan(input: {
 			userId: input.userId,
 			title: input.title,
 			description: input.description ?? null,
+			color: input.color ?? null,
+			icon: input.icon ?? null,
+			startDate: input.startDate ?? null,
+			targetEndDate: input.targetEndDate ?? null,
+			cadence: input.cadence ?? null,
 		})
 		.returning();
 
@@ -172,20 +181,37 @@ export async function getUserPlanById(planId: string, userId: string) {
 	});
 }
 
-export async function listUserPlansWithSummary(userId: string): Promise<PlanCardSummary[]> {
+export async function listUserPlansWithSummary(
+	userId: string,
+	options: { includeArchived?: boolean } = {},
+): Promise<PlanCardSummary[]> {
+	const archivedClause = options.includeArchived ? undefined : isNull(plans.archivedAt);
+
+	const whereClause = archivedClause
+		? and(eq(plans.userId, userId), archivedClause)
+		: eq(plans.userId, userId);
+
 	const rows = await db
 		.select({
 			id: plans.id,
 			title: plans.title,
 			description: plans.description,
+			color: plans.color,
+			icon: plans.icon,
+			startDate: plans.startDate,
+			targetEndDate: plans.targetEndDate,
+			cadence: plans.cadence,
+			archivedAt: plans.archivedAt,
 			updatedAt: plans.updatedAt,
 			createdAt: plans.createdAt,
-			totalBooks: sql<number>`COALESCE(COUNT(${planBooks.id}), 0)`,
-			completedBooks: sql<number>`COALESCE(COUNT(*) FILTER (WHERE ${planBooks.status} = 'completed'), 0)`,
+			totalBooks: sql<number>`COALESCE(COUNT(DISTINCT ${planBooks.id}), 0)`,
+			completedBooks: sql<number>`COALESCE(COUNT(DISTINCT ${planBooks.id}) FILTER (WHERE ${planBooks.status} = 'completed'), 0)`,
+			chaptersLogged: sql<number>`COALESCE(COUNT(DISTINCT (${readingLogs.planBookId}::text || ':' || ${readingLogs.chapterStart}::text)), 0)`,
 		})
 		.from(plans)
 		.leftJoin(planBooks, eq(planBooks.planId, plans.id))
-		.where(eq(plans.userId, userId))
+		.leftJoin(readingLogs, eq(readingLogs.planBookId, planBooks.id))
+		.where(whereClause)
 		.groupBy(plans.id)
 		.orderBy(desc(plans.updatedAt));
 
@@ -193,24 +219,35 @@ export async function listUserPlansWithSummary(userId: string): Promise<PlanCard
 		...row,
 		totalBooks: Number(row.totalBooks),
 		completedBooks: Number(row.completedBooks),
+		chaptersLogged: Number(row.chaptersLogged),
 	}));
 }
 
-export async function updatePlan(
-	planId: string,
-	userId: string,
-	changes: {
-		title?: string;
-		description?: string | null;
-	},
-) {
+export interface UpdatePlanChanges {
+	title?: string;
+	description?: string | null;
+	color?: string | null;
+	icon?: string | null;
+	startDate?: string | null;
+	targetEndDate?: string | null;
+	cadence?: string | null;
+	archivedAt?: Date | null;
+}
+
+export async function updatePlan(planId: string, userId: string, changes: UpdatePlanChanges) {
+	const patch: Record<string, unknown> = { updatedAt: new Date() };
+	if (changes.title !== undefined) patch.title = changes.title;
+	if (changes.description !== undefined) patch.description = changes.description;
+	if (changes.color !== undefined) patch.color = changes.color;
+	if (changes.icon !== undefined) patch.icon = changes.icon;
+	if (changes.startDate !== undefined) patch.startDate = changes.startDate;
+	if (changes.targetEndDate !== undefined) patch.targetEndDate = changes.targetEndDate;
+	if (changes.cadence !== undefined) patch.cadence = changes.cadence;
+	if (changes.archivedAt !== undefined) patch.archivedAt = changes.archivedAt;
+
 	const [updated] = await db
 		.update(plans)
-		.set({
-			...(changes.title !== undefined ? { title: changes.title } : {}),
-			...(changes.description !== undefined ? { description: changes.description } : {}),
-			updatedAt: new Date(),
-		})
+		.set(patch)
 		.where(and(eq(plans.id, planId), eq(plans.userId, userId)))
 		.returning();
 
@@ -267,6 +304,8 @@ export async function addBookToPlan(input: {
 	planId: string;
 	bookId: number;
 	orderIndex: number;
+	chapterStart?: number | null;
+	chapterEnd?: number | null;
 }) {
 	const [created] = await db
 		.insert(planBooks)
@@ -274,35 +313,101 @@ export async function addBookToPlan(input: {
 			planId: input.planId,
 			bookId: input.bookId,
 			orderIndex: input.orderIndex,
+			chapterStart: input.chapterStart ?? null,
+			chapterEnd: input.chapterEnd ?? null,
 		})
 		.returning();
 
 	return created;
 }
 
-export async function updatePlanBook(
-	planBookId: string,
-	changes: {
-		orderIndex?: number;
-		resourceUrl?: string | null;
-		resourceLabel?: string | null;
-		resourceType?:
-			| "reading_plan"
-			| "video"
-			| "podcast"
-			| "book"
-			| "article"
-			| "other"
-			| null;
-		notes?: string | null;
-		status?: "not_started" | "in_progress" | "completed";
-		startedAt?: Date | null;
-		completedAt?: Date | null;
-	},
-) {
+export interface AddBooksToPlanInput {
+	planId: string;
+	books: Array<{
+		bookId: number;
+		chapterStart?: number | null;
+		chapterEnd?: number | null;
+	}>;
+}
+
+export async function addBooksToPlan({ planId, books: booksToAdd }: AddBooksToPlanInput) {
+	if (booksToAdd.length === 0) {
+		return [];
+	}
+
+	return db.transaction(async (tx) => {
+		const [orderRow] = await tx
+			.select({
+				nextOrder: sql<number>`COALESCE(MAX(${planBooks.orderIndex}) + 1, 0)`,
+			})
+			.from(planBooks)
+			.where(eq(planBooks.planId, planId));
+
+		const startingIndex = Number(orderRow?.nextOrder ?? 0);
+
+		const existingRows = await tx
+			.select({ bookId: planBooks.bookId })
+			.from(planBooks)
+			.where(
+				and(
+					eq(planBooks.planId, planId),
+					inArray(
+						planBooks.bookId,
+						booksToAdd.map((book) => book.bookId),
+					),
+				),
+			);
+
+		const existingIds = new Set(existingRows.map((row) => row.bookId));
+		const toInsert = booksToAdd
+			.filter((book) => !existingIds.has(book.bookId))
+			.map((book, index) => ({
+				planId,
+				bookId: book.bookId,
+				orderIndex: startingIndex + index,
+				chapterStart: book.chapterStart ?? null,
+				chapterEnd: book.chapterEnd ?? null,
+			}));
+
+		if (toInsert.length === 0) {
+			return [];
+		}
+
+		return tx.insert(planBooks).values(toInsert).returning();
+	});
+}
+
+export interface UpdatePlanBookChanges {
+	orderIndex?: number;
+	chapterStart?: number | null;
+	chapterEnd?: number | null;
+	notes?: string | null;
+	status?: "not_started" | "in_progress" | "completed";
+	statusManual?: boolean;
+	startedAt?: Date | null;
+	completedAt?: Date | null;
+}
+
+export async function updatePlanBook(planBookId: string, changes: UpdatePlanBookChanges) {
+	const patch: Record<string, unknown> = {};
+	if (changes.orderIndex !== undefined) patch.orderIndex = changes.orderIndex;
+	if (changes.chapterStart !== undefined) patch.chapterStart = changes.chapterStart;
+	if (changes.chapterEnd !== undefined) patch.chapterEnd = changes.chapterEnd;
+	if (changes.notes !== undefined) patch.notes = changes.notes;
+	if (changes.status !== undefined) patch.status = changes.status;
+	if (changes.statusManual !== undefined) patch.statusManual = changes.statusManual;
+	if (changes.startedAt !== undefined) patch.startedAt = changes.startedAt;
+	if (changes.completedAt !== undefined) patch.completedAt = changes.completedAt;
+
+	if (Object.keys(patch).length === 0) {
+		return db.query.planBooks.findFirst({
+			where: eq(planBooks.id, planBookId),
+		});
+	}
+
 	const [updated] = await db
 		.update(planBooks)
-		.set(changes)
+		.set(patch)
 		.where(eq(planBooks.id, planBookId))
 		.returning();
 
@@ -310,18 +415,12 @@ export async function updatePlanBook(
 }
 
 export async function removePlanBook(planBookId: string) {
-	const [deleted] = await db
-		.delete(planBooks)
-		.where(eq(planBooks.id, planBookId))
-		.returning();
+	const [deleted] = await db.delete(planBooks).where(eq(planBooks.id, planBookId)).returning();
 
 	return deleted ?? null;
 }
 
-export async function reorderPlanBooks(
-	planId: string,
-	orderedPlanBookIds: string[],
-) {
+export async function reorderPlanBooks(planId: string, orderedPlanBookIds: string[]) {
 	if (orderedPlanBookIds.length === 0) {
 		return;
 	}
@@ -352,11 +451,13 @@ export async function createReadingLog(input: {
 	verseEnd?: number | null;
 	note?: string | null;
 	loggedAt?: string;
+	submissionId?: string | null;
 }) {
 	const [created] = await db
 		.insert(readingLogs)
 		.values({
 			planBookId: input.planBookId,
+			submissionId: input.submissionId ?? null,
 			chapterStart: input.chapterStart,
 			chapterEnd: input.chapterEnd,
 			verseStart: input.verseStart ?? null,
@@ -367,6 +468,38 @@ export async function createReadingLog(input: {
 		.returning();
 
 	return created;
+}
+
+export interface BatchReadingLogInput {
+	planBookId: string;
+	submissionId: string;
+	entries: Array<{
+		chapterStart: number;
+		chapterEnd: number;
+		verseStart?: number | null;
+		verseEnd?: number | null;
+	}>;
+	note?: string | null;
+	loggedAt?: string;
+}
+
+export async function createReadingLogsBatch(input: BatchReadingLogInput) {
+	if (input.entries.length === 0) {
+		return [];
+	}
+
+	const rows = input.entries.map((entry) => ({
+		planBookId: input.planBookId,
+		submissionId: input.submissionId,
+		chapterStart: entry.chapterStart,
+		chapterEnd: entry.chapterEnd,
+		verseStart: entry.verseStart ?? null,
+		verseEnd: entry.verseEnd ?? null,
+		note: input.note ?? null,
+		loggedAt: input.loggedAt,
+	}));
+
+	return db.insert(readingLogs).values(rows).returning();
 }
 
 export async function getReadingLogById(logId: string) {
@@ -384,54 +517,424 @@ export async function getReadingLogById(logId: string) {
 }
 
 export async function deleteReadingLog(logId: string) {
-	const [deleted] = await db
-		.delete(readingLogs)
-		.where(eq(readingLogs.id, logId))
-		.returning();
+	const [deleted] = await db.delete(readingLogs).where(eq(readingLogs.id, logId)).returning();
 
 	return deleted ?? null;
 }
 
-function toProgressStats(input: {
-	totalBooks: number;
-	completedBooks: number;
-	inProgressBooks: number;
-	notStartedBooks: number;
-	totalLogs: number;
-	totalChaptersLogged: number;
-}) {
-	return {
-		totalBooks: Number(input.totalBooks),
-		completedBooks: Number(input.completedBooks),
-		inProgressBooks: Number(input.inProgressBooks),
-		notStartedBooks: Number(input.notStartedBooks),
-		totalLogs: Number(input.totalLogs),
-		totalChaptersLogged: Number(input.totalChaptersLogged),
-	};
+export interface UpdateReadingLogChanges {
+	planBookId?: string;
+	chapterStart?: number;
+	chapterEnd?: number;
+	verseStart?: number | null;
+	verseEnd?: number | null;
+	note?: string | null;
+	loggedAt?: string;
 }
 
-export async function getPlanProgressStats(planId: string) {
-	const [stats] = await db
+export interface ReadingStreak {
+	current: number;
+	longest: number;
+	lastEntryDate: string | null;
+}
+
+export interface ActivityDay {
+	date: string;
+	count: number;
+}
+
+/**
+ * Returns one entry per day across the requested window (inclusive). Days
+ * with zero logs are filled in so the heatmap renders without gaps.
+ */
+export async function getReadingActivity(
+	userId: string,
+	options: { from?: string; to?: string } = {},
+): Promise<{ from: string; to: string; days: ActivityDay[] }> {
+	const today = new Date();
+	today.setUTCHours(0, 0, 0, 0);
+	const fromBound = options.from
+		? new Date(`${options.from}T00:00:00Z`)
+		: new Date(Date.UTC(today.getUTCFullYear() - 1, today.getUTCMonth(), today.getUTCDate() + 1));
+	const toBound = options.to ? new Date(`${options.to}T00:00:00Z`) : today;
+
+	const fromIso = fromBound.toISOString().slice(0, 10);
+	const toIso = toBound.toISOString().slice(0, 10);
+
+	const rows = await db
 		.select({
-			totalBooks: sql<number>`COALESCE(COUNT(DISTINCT ${planBooks.id}), 0)`,
-			completedBooks: sql<number>`COALESCE(COUNT(DISTINCT ${planBooks.id}) FILTER (WHERE ${planBooks.status} = 'completed'), 0)`,
-			inProgressBooks: sql<number>`COALESCE(COUNT(DISTINCT ${planBooks.id}) FILTER (WHERE ${planBooks.status} = 'in_progress'), 0)`,
-			notStartedBooks: sql<number>`COALESCE(COUNT(DISTINCT ${planBooks.id}) FILTER (WHERE ${planBooks.status} = 'not_started'), 0)`,
-			totalLogs: sql<number>`COALESCE(COUNT(${readingLogs.id}), 0)`,
-			totalChaptersLogged: sql<number>`COALESCE(SUM(${readingLogs.chapterEnd} - ${readingLogs.chapterStart} + 1), 0)`,
+			date: readingLogs.loggedAt,
+			count: sql<number>`COUNT(*)`,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.where(
+			and(
+				eq(plans.userId, userId),
+				sql`${readingLogs.loggedAt} >= ${fromIso}::date`,
+				sql`${readingLogs.loggedAt} <= ${toIso}::date`,
+			),
+		)
+		.groupBy(readingLogs.loggedAt);
+
+	const counts = new Map<string, number>();
+	for (const row of rows) {
+		counts.set(row.date, Number(row.count));
+	}
+
+	const days: ActivityDay[] = [];
+	for (
+		let cursor = new Date(fromBound);
+		cursor.getTime() <= toBound.getTime();
+		cursor.setUTCDate(cursor.getUTCDate() + 1)
+	) {
+		const iso = cursor.toISOString().slice(0, 10);
+		days.push({ date: iso, count: counts.get(iso) ?? 0 });
+	}
+
+	return { from: fromIso, to: toIso, days };
+}
+
+/**
+ * Walks the user's distinct logged_at dates and returns the current and
+ * longest consecutive-day streaks. "Current" extends back from today (or the
+ * most recent entry if today has none — but breaks if the most recent entry
+ * is more than one day old).
+ */
+export async function getReadingStreak(userId: string): Promise<ReadingStreak> {
+	const rows = await db
+		.selectDistinct({ date: readingLogs.loggedAt })
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.where(eq(plans.userId, userId))
+		.orderBy(desc(readingLogs.loggedAt));
+
+	if (rows.length === 0) {
+		return { current: 0, longest: 0, lastEntryDate: null };
+	}
+
+	const dates = rows.map((row) => row.date);
+
+	const today = new Date();
+	today.setUTCHours(0, 0, 0, 0);
+	const yesterday = new Date(today);
+	yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+
+	const todayIso = today.toISOString().slice(0, 10);
+	const yesterdayIso = yesterday.toISOString().slice(0, 10);
+	const lastEntryDate = dates[0];
+
+	let current = 0;
+	if (lastEntryDate === todayIso || lastEntryDate === yesterdayIso) {
+		current = 1;
+		for (let i = 1; i < dates.length; i += 1) {
+			const previous = new Date(`${dates[i - 1]}T00:00:00Z`);
+			const next = new Date(`${dates[i]}T00:00:00Z`);
+			const diffDays = Math.round(
+				(previous.getTime() - next.getTime()) / (24 * 60 * 60 * 1000),
+			);
+			if (diffDays === 1) {
+				current += 1;
+			} else {
+				break;
+			}
+		}
+	}
+
+	let longest = 1;
+	let run = 1;
+	for (let i = 1; i < dates.length; i += 1) {
+		const previous = new Date(`${dates[i - 1]}T00:00:00Z`);
+		const next = new Date(`${dates[i]}T00:00:00Z`);
+		const diffDays = Math.round(
+			(previous.getTime() - next.getTime()) / (24 * 60 * 60 * 1000),
+		);
+		if (diffDays === 1) {
+			run += 1;
+			longest = Math.max(longest, run);
+		} else {
+			run = 1;
+		}
+	}
+
+	return { current, longest, lastEntryDate };
+}
+
+/**
+ * Counts the distinct chapters the user has logged today across every plan.
+ * Used by the daily-goal progress ring.
+ */
+export async function getChaptersLoggedToday(userId: string, dateIso: string): Promise<number> {
+	const rows = await db
+		.select({
+			chapterStart: readingLogs.chapterStart,
+			chapterEnd: readingLogs.chapterEnd,
+			bookId: planBooks.bookId,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.where(and(eq(plans.userId, userId), sql`${readingLogs.loggedAt} = ${dateIso}::date`));
+
+	const seen = new Set<string>();
+	for (const row of rows) {
+		for (let ch = row.chapterStart; ch <= row.chapterEnd; ch += 1) {
+			seen.add(`${row.bookId}:${ch}`);
+		}
+	}
+	return seen.size;
+}
+
+export async function getUserDailyGoal(userId: string): Promise<number | null> {
+	const row = await db.query.user.findFirst({
+		where: eq(user.id, userId),
+		columns: { dailyGoalChapters: true },
+	});
+	return row?.dailyGoalChapters ?? null;
+}
+
+export async function setUserDailyGoal(
+	userId: string,
+	dailyGoalChapters: number | null,
+): Promise<number | null> {
+	const [updated] = await db
+		.update(user)
+		.set({ dailyGoalChapters })
+		.where(eq(user.id, userId))
+		.returning({ dailyGoalChapters: user.dailyGoalChapters });
+
+	return updated?.dailyGoalChapters ?? null;
+}
+
+export async function updateReadingLog(logId: string, changes: UpdateReadingLogChanges) {
+	const patch: Record<string, unknown> = {};
+	if (changes.planBookId !== undefined) patch.planBookId = changes.planBookId;
+	if (changes.chapterStart !== undefined) patch.chapterStart = changes.chapterStart;
+	if (changes.chapterEnd !== undefined) patch.chapterEnd = changes.chapterEnd;
+	if (changes.verseStart !== undefined) patch.verseStart = changes.verseStart;
+	if (changes.verseEnd !== undefined) patch.verseEnd = changes.verseEnd;
+	if (changes.note !== undefined) patch.note = changes.note;
+	if (changes.loggedAt !== undefined) patch.loggedAt = changes.loggedAt;
+
+	if (Object.keys(patch).length === 0) {
+		return db.query.readingLogs.findFirst({
+			where: eq(readingLogs.id, logId),
+		});
+	}
+
+	const [updated] = await db
+		.update(readingLogs)
+		.set(patch)
+		.where(eq(readingLogs.id, logId))
+		.returning();
+
+	return updated ?? null;
+}
+
+function computeChaptersInScope(
+	chapterCount: number,
+	chapterStart: number | null,
+	chapterEnd: number | null,
+): { chapters: number[]; total: number } {
+	if (chapterStart === null || chapterEnd === null) {
+		return {
+			chapters: Array.from({ length: chapterCount }, (_, i) => i + 1),
+			total: chapterCount,
+		};
+	}
+
+	const bounded = Math.min(chapterEnd, chapterCount);
+	const start = Math.max(1, chapterStart);
+	const chapters = [] as number[];
+	for (let ch = start; ch <= bounded; ch += 1) {
+		chapters.push(ch);
+	}
+	return { chapters, total: chapters.length };
+}
+
+/**
+ * Returns the set of chapter numbers that have at least one reading log row.
+ * A log with a range (chapterStart..chapterEnd) contributes every chapter in that range.
+ */
+async function listCoveredChapters(planBookId: string): Promise<Set<number>> {
+	const rows = await db
+		.select({
+			chapterStart: readingLogs.chapterStart,
+			chapterEnd: readingLogs.chapterEnd,
+		})
+		.from(readingLogs)
+		.where(eq(readingLogs.planBookId, planBookId));
+
+	const covered = new Set<number>();
+	for (const row of rows) {
+		for (let ch = row.chapterStart; ch <= row.chapterEnd; ch += 1) {
+			covered.add(ch);
+		}
+	}
+	return covered;
+}
+
+/**
+ * Recomputes the plan_book status from the reading logs unless the user has
+ * opted in to manual overrides via `status_manual`.
+ *
+ * - no logs → not_started
+ * - some chapters logged → in_progress
+ * - every chapter in scope logged → completed
+ *
+ * Also maintains `started_at` / `completed_at` timestamps.
+ */
+export async function recomputePlanBookStatus(planBookId: string) {
+	const planBook = await db.query.planBooks.findFirst({
+		where: eq(planBooks.id, planBookId),
+		with: {
+			book: true,
+		},
+	});
+	if (!planBook) {
+		return null;
+	}
+
+	if (planBook.statusManual) {
+		return planBook;
+	}
+
+	const covered = await listCoveredChapters(planBookId);
+	const scope = computeChaptersInScope(
+		planBook.book.chapterCount,
+		planBook.chapterStart,
+		planBook.chapterEnd,
+	);
+
+	const coveredInScope = scope.chapters.filter((ch) => covered.has(ch));
+	const nextStatus: "not_started" | "in_progress" | "completed" =
+		coveredInScope.length === 0
+			? "not_started"
+			: coveredInScope.length >= scope.total
+				? "completed"
+				: "in_progress";
+
+	const now = new Date();
+	const patch: UpdatePlanBookChanges = {
+		status: nextStatus,
+	};
+
+	if (nextStatus === "not_started") {
+		patch.startedAt = null;
+		patch.completedAt = null;
+	} else {
+		patch.startedAt = planBook.startedAt ?? now;
+		patch.completedAt = nextStatus === "completed" ? (planBook.completedAt ?? now) : null;
+	}
+
+	if (
+		patch.status === planBook.status &&
+		patch.startedAt === planBook.startedAt &&
+		patch.completedAt === planBook.completedAt
+	) {
+		return planBook;
+	}
+
+	const [updated] = await db
+		.update(planBooks)
+		.set(patch)
+		.where(eq(planBooks.id, planBookId))
+		.returning();
+
+	return updated ?? planBook;
+}
+
+export async function getPlanProgressStats(planId: string): Promise<PlanAggregateStats> {
+	const planBookRows = await db
+		.select({
+			id: planBooks.id,
+			status: planBooks.status,
+			chapterStart: planBooks.chapterStart,
+			chapterEnd: planBooks.chapterEnd,
+			chapterCount: books.chapterCount,
 		})
 		.from(planBooks)
-		.leftJoin(readingLogs, eq(readingLogs.planBookId, planBooks.id))
+		.innerJoin(books, eq(books.id, planBooks.bookId))
 		.where(eq(planBooks.planId, planId));
 
-	return toProgressStats({
-		totalBooks: Number(stats?.totalBooks ?? 0),
-		completedBooks: Number(stats?.completedBooks ?? 0),
-		inProgressBooks: Number(stats?.inProgressBooks ?? 0),
-		notStartedBooks: Number(stats?.notStartedBooks ?? 0),
-		totalLogs: Number(stats?.totalLogs ?? 0),
-		totalChaptersLogged: Number(stats?.totalChaptersLogged ?? 0),
-	});
+	if (planBookRows.length === 0) {
+		return {
+			totalBooks: 0,
+			completedBooks: 0,
+			inProgressBooks: 0,
+			notStartedBooks: 0,
+			totalLogs: 0,
+			totalChaptersLogged: 0,
+			chaptersInScope: 0,
+			chaptersCovered: 0,
+		};
+	}
+
+	const logRows = await db
+		.select({
+			id: readingLogs.id,
+			planBookId: readingLogs.planBookId,
+			chapterStart: readingLogs.chapterStart,
+			chapterEnd: readingLogs.chapterEnd,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.where(eq(planBooks.planId, planId));
+
+	let totalLogs = 0;
+	let totalChaptersLogged = 0;
+	let chaptersInScope = 0;
+	let chaptersCovered = 0;
+	let completedBooks = 0;
+	let inProgressBooks = 0;
+	let notStartedBooks = 0;
+
+	const logsByBook = new Map<string, Array<{ chapterStart: number; chapterEnd: number }>>();
+	for (const row of logRows) {
+		totalLogs += 1;
+		totalChaptersLogged += row.chapterEnd - row.chapterStart + 1;
+		const list = logsByBook.get(row.planBookId) ?? [];
+		list.push({ chapterStart: row.chapterStart, chapterEnd: row.chapterEnd });
+		logsByBook.set(row.planBookId, list);
+	}
+
+	for (const row of planBookRows) {
+		const scope = computeChaptersInScope(row.chapterCount, row.chapterStart, row.chapterEnd);
+		chaptersInScope += scope.total;
+		const covered = new Set<number>();
+		const logs = logsByBook.get(row.id) ?? [];
+		for (const log of logs) {
+			for (let ch = log.chapterStart; ch <= log.chapterEnd; ch += 1) {
+				covered.add(ch);
+			}
+		}
+		const inScopeCovered = scope.chapters.filter((ch) => covered.has(ch)).length;
+		chaptersCovered += inScopeCovered;
+
+		switch (row.status) {
+			case "completed":
+				completedBooks += 1;
+				break;
+			case "in_progress":
+				inProgressBooks += 1;
+				break;
+			default:
+				notStartedBooks += 1;
+		}
+	}
+
+	return {
+		totalBooks: planBookRows.length,
+		completedBooks,
+		inProgressBooks,
+		notStartedBooks,
+		totalLogs,
+		totalChaptersLogged,
+		chaptersInScope,
+		chaptersCovered,
+	};
 }
 
 export async function getPlanBuilderData(planId: string): Promise<PlanBuilderData | null> {
@@ -446,11 +949,11 @@ export async function getPlanBuilderData(planId: string): Promise<PlanBuilderDat
 			planId: planBooks.planId,
 			bookId: planBooks.bookId,
 			orderIndex: planBooks.orderIndex,
-			resourceUrl: planBooks.resourceUrl,
-			resourceLabel: planBooks.resourceLabel,
-			resourceType: planBooks.resourceType,
+			chapterStart: planBooks.chapterStart,
+			chapterEnd: planBooks.chapterEnd,
 			notes: planBooks.notes,
 			status: planBooks.status,
+			statusManual: planBooks.statusManual,
 			startedAt: planBooks.startedAt,
 			completedAt: planBooks.completedAt,
 			createdAt: planBooks.createdAt,
@@ -472,84 +975,194 @@ export async function getPlanBuilderData(planId: string): Promise<PlanBuilderDat
 		.groupBy(planBooks.id, books.id)
 		.orderBy(asc(planBooks.orderIndex), asc(planBooks.createdAt));
 
+	// Coverage per book for the richer builder payload (used by per-book progress bars).
+	const allLogs =
+		rows.length === 0
+			? []
+			: await db
+					.select({
+						planBookId: readingLogs.planBookId,
+						chapterStart: readingLogs.chapterStart,
+						chapterEnd: readingLogs.chapterEnd,
+					})
+					.from(readingLogs)
+					.where(
+						inArray(
+							readingLogs.planBookId,
+							rows.map((row) => row.id),
+						),
+					);
+
+	const coverageByBook = new Map<string, Set<number>>();
+	for (const log of allLogs) {
+		const covered = coverageByBook.get(log.planBookId) ?? new Set<number>();
+		for (let ch = log.chapterStart; ch <= log.chapterEnd; ch += 1) {
+			covered.add(ch);
+		}
+		coverageByBook.set(log.planBookId, covered);
+	}
+
+	const planBooksData: PlanBuilderBook[] = rows.map((row) => {
+		const scope = computeChaptersInScope(row.book.chapterCount, row.chapterStart, row.chapterEnd);
+		const covered = coverageByBook.get(row.id) ?? new Set<number>();
+		const inScopeCovered = scope.chapters.filter((ch) => covered.has(ch)).length;
+
+		return {
+			...row,
+			logCount: Number(row.logCount),
+			chaptersInScope: scope.total,
+			chaptersCovered: inScopeCovered,
+		};
+	});
+
 	const stats = await getPlanProgressStats(planId);
 
 	return {
 		plan: {
 			id: plan.id,
+			userId: plan.userId,
 			title: plan.title,
 			description: plan.description,
+			color: plan.color,
+			icon: plan.icon,
+			startDate: plan.startDate,
+			targetEndDate: plan.targetEndDate,
+			cadence: plan.cadence,
+			archivedAt: plan.archivedAt,
 			createdAt: plan.createdAt,
 			updatedAt: plan.updatedAt,
 		},
-		planBooks: rows.map((row) => ({
-			...row,
-			logCount: Number(row.logCount),
-		})),
+		planBooks: planBooksData,
 		stats,
 	};
 }
 
-export async function getPlanProgressData(planId: string): Promise<PlanProgressData | null> {
-	const plan = await getPlanById(planId);
-	if (!plan) {
-		return null;
+function mapReadingLogRow(row: {
+	id: string;
+	planBookId: string;
+	submissionId: string | null;
+	chapterStart: number;
+	chapterEnd: number;
+	verseStart: number | null;
+	verseEnd: number | null;
+	note: string | null;
+	loggedAt: string;
+	createdAt: Date;
+	planId: string;
+	planTitle: string;
+	planColor: string | null;
+	planIcon: string | null;
+	bookName: string;
+	bookUsfmCode: string;
+}): RecentLogEntry {
+	return {
+		id: row.id,
+		planBookId: row.planBookId,
+		submissionId: row.submissionId,
+		planId: row.planId,
+		planTitle: row.planTitle,
+		planColor: row.planColor,
+		planIcon: row.planIcon,
+		bookName: row.bookName,
+		bookUsfmCode: row.bookUsfmCode,
+		chapterStart: row.chapterStart,
+		chapterEnd: row.chapterEnd,
+		verseStart: row.verseStart,
+		verseEnd: row.verseEnd,
+		note: row.note,
+		loggedAt: row.loggedAt,
+		createdAt: row.createdAt,
+	};
+}
+
+export async function listRecentReadingLogsForPlan(planId: string, limit = 50) {
+	const rows = await db
+		.select({
+			id: readingLogs.id,
+			planBookId: readingLogs.planBookId,
+			submissionId: readingLogs.submissionId,
+			chapterStart: readingLogs.chapterStart,
+			chapterEnd: readingLogs.chapterEnd,
+			verseStart: readingLogs.verseStart,
+			verseEnd: readingLogs.verseEnd,
+			note: readingLogs.note,
+			loggedAt: readingLogs.loggedAt,
+			createdAt: readingLogs.createdAt,
+			planId: plans.id,
+			planTitle: plans.title,
+			planColor: plans.color,
+			planIcon: plans.icon,
+			bookName: books.name,
+			bookUsfmCode: books.usfmCode,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.innerJoin(books, eq(books.id, planBooks.bookId))
+		.where(eq(plans.id, planId))
+		.orderBy(desc(readingLogs.loggedAt), desc(readingLogs.createdAt))
+		.limit(limit);
+
+	return rows.map(mapReadingLogRow);
+}
+
+export interface ListRecentLogsForUserOptions {
+	limit?: number;
+	search?: string;
+}
+
+export async function listRecentReadingLogsForUser(
+	userId: string,
+	options: ListRecentLogsForUserOptions = {},
+) {
+	const limit = options.limit ?? 50;
+	const trimmed = options.search?.trim() ?? "";
+
+	const baseClauses = [eq(plans.userId, userId)];
+
+	// When a search string is provided, combine a Postgres full-text query on
+	// `reading_logs.note_tsv` with case-insensitive matches on book + plan
+	// titles. We use websearch_to_tsquery so users can write quoted phrases
+	// and OR/AND naturally.
+	if (trimmed) {
+		const ilikeNeedle = `%${trimmed}%`;
+		baseClauses.push(
+			sql`(
+				note_tsv @@ websearch_to_tsquery('english', ${trimmed})
+				OR ${books.name} ILIKE ${ilikeNeedle}
+				OR ${plans.title} ILIKE ${ilikeNeedle}
+			)`,
+		);
 	}
 
-	const stats = await getPlanProgressStats(planId);
+	const rows = await db
+		.select({
+			id: readingLogs.id,
+			planBookId: readingLogs.planBookId,
+			submissionId: readingLogs.submissionId,
+			chapterStart: readingLogs.chapterStart,
+			chapterEnd: readingLogs.chapterEnd,
+			verseStart: readingLogs.verseStart,
+			verseEnd: readingLogs.verseEnd,
+			note: readingLogs.note,
+			loggedAt: readingLogs.loggedAt,
+			createdAt: readingLogs.createdAt,
+			planId: plans.id,
+			planTitle: plans.title,
+			planColor: plans.color,
+			planIcon: plans.icon,
+			bookName: books.name,
+			bookUsfmCode: books.usfmCode,
+		})
+		.from(readingLogs)
+		.innerJoin(planBooks, eq(planBooks.id, readingLogs.planBookId))
+		.innerJoin(plans, eq(plans.id, planBooks.planId))
+		.innerJoin(books, eq(books.id, planBooks.bookId))
+		.where(and(...baseClauses))
+		.orderBy(desc(readingLogs.loggedAt), desc(readingLogs.createdAt))
+		.limit(limit);
 
-	const planBookRows = await db.query.planBooks.findMany({
-		where: eq(planBooks.planId, planId),
-		orderBy: [asc(planBooks.orderIndex), asc(planBooks.createdAt)],
-		with: {
-			book: true,
-			readingLogs: {
-				orderBy: [desc(readingLogs.loggedAt), desc(readingLogs.createdAt)],
-			},
-		},
-	});
-
-	const booksData = planBookRows.map((row) => ({
-		id: row.id,
-		orderIndex: row.orderIndex,
-		status: row.status,
-		resourceUrl: row.resourceUrl,
-		resourceLabel: row.resourceLabel,
-		resourceType: row.resourceType,
-		startedAt: row.startedAt,
-		completedAt: row.completedAt,
-		book: {
-			id: row.book.id,
-			name: row.book.name,
-			usfmCode: row.book.usfmCode,
-			chapterCount: row.book.chapterCount,
-		},
-		logCount: row.readingLogs.length,
-		mostRecentLog:
-			row.readingLogs.length > 0
-				? {
-						id: row.readingLogs[0].id,
-						chapterStart: row.readingLogs[0].chapterStart,
-						chapterEnd: row.readingLogs[0].chapterEnd,
-						verseStart: row.readingLogs[0].verseStart,
-						verseEnd: row.readingLogs[0].verseEnd,
-						note: row.readingLogs[0].note,
-						loggedAt: row.readingLogs[0].loggedAt,
-					}
-				: null,
-	}));
-
-	return {
-		plan: {
-			id: plan.id,
-			title: plan.title,
-			description: plan.description,
-			createdAt: plan.createdAt,
-			updatedAt: plan.updatedAt,
-		},
-		stats,
-		books: booksData,
-	};
+	return rows.map(mapReadingLogRow);
 }
 
 export async function listPlanBookIdsInOrder(planId: string) {

@@ -1,5 +1,5 @@
 import { getSession } from "@auth/lib/server";
-import { PlanBuilderPage } from "@lectio/components/PlanBuilderPage";
+import { PlanEditor } from "@lectio/components/PlanEditor";
 import { getPlanBuilder } from "@lectio/lib/server";
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
@@ -9,7 +9,7 @@ interface PlanEditRouteProps {
 }
 
 export async function generateMetadata() {
-	const t = await getTranslations("lectio.builder");
+	const t = await getTranslations("lectio.editor");
 
 	return {
 		title: t("titleFallback"),
@@ -32,5 +32,5 @@ export default async function PlanEditRoute({ params }: PlanEditRouteProps) {
 		notFound();
 	}
 
-	return <PlanBuilderPage planId={id} initialBuilderData={builderData} />;
+	return <PlanEditor planId={id} initialData={builderData} />;
 }

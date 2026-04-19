@@ -29,8 +29,8 @@ export function ReadingLogListItem({
 	const format = useFormatter();
 
 	return (
-		<div className="rounded-xl border p-3">
-			<div className="flex items-start justify-between gap-3">
+		<div className="p-3 rounded-xl border">
+			<div className="gap-3 flex items-start justify-between">
 				<div className="min-w-0">
 					<p className="font-medium text-sm">
 						{bookName} {formatReadingLogLabel(log)}

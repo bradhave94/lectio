@@ -10,8 +10,7 @@ export const listReadingLogsProcedure = protectedProcedure
 		path: "/lectio/plan-books/{planBookId}/reading-logs",
 		tags: ["Lectio"],
 		summary: "List reading logs for a plan book",
-		description:
-			"Returns reading logs for a plan book in reverse chronological order.",
+		description: "Returns reading logs for a plan book in reverse chronological order.",
 	})
 	.input(
 		z.object({

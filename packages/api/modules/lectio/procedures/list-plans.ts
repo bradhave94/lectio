@@ -15,6 +15,8 @@ export const listPlansProcedure = protectedProcedure
 			includeArchived: z.boolean().optional(),
 		}),
 	)
-	.handler(async ({ context: { user } }) => {
-		return listUserPlansWithSummary(user.id);
+	.handler(async ({ input, context: { user } }) => {
+		return listUserPlansWithSummary(user.id, {
+			includeArchived: input.includeArchived ?? false,
+		});
 	});

@@ -1,114 +1,215 @@
 "use client";
 
+import { useBooksQuery, type BooksResponse } from "@lectio/hooks/use-lectio";
 import { TESTAMENT_OPTIONS } from "@lectio/lib/constants";
-import { useAddPlanBookMutation, useBooksQuery, type BuilderResponse } from "@lectio/hooks/use-lectio";
-import { Badge, Button, Card, Input, Tabs, TabsList, TabsTrigger } from "@repo/ui";
+import { Badge, Button, Card, cn, Input, Tabs, TabsList, TabsTrigger } from "@repo/ui";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 interface BookPickerPanelProps {
-	planId: string;
-	planBooks: BuilderResponse["planBooks"];
+	/** IDs of books that are already in the plan (for visual disabling). */
+	excludedBookIds?: number[];
+	/** IDs of currently selected (queued) books. */
+	selectedBookIds: number[];
+	onSelectionChange: (next: number[]) => void;
+	onAddSelected?: (bookIds: number[]) => void;
+	isAdding?: boolean;
 }
 
-export function BookPickerPanel({ planId, planBooks }: BookPickerPanelProps) {
+export function BookPickerPanel({
+	excludedBookIds = [],
+	selectedBookIds,
+	onSelectionChange,
+	onAddSelected,
+	isAdding,
+}: BookPickerPanelProps) {
 	const t = useTranslations("lectio");
 	const [search, setSearch] = useState("");
 	const [testament, setTestament] = useState<"ALL" | "OT" | "NT">("ALL");
-	const addPlanBookMutation = useAddPlanBookMutation(planId);
 
-	const { data: books = [], isPending } = useBooksQuery({
+	const { data: books = [] as BooksResponse, isPending } = useBooksQuery({
 		search,
 		testament: testament === "ALL" ? undefined : testament,
 	});
 
-	const addedBookIds = useMemo(() => new Set(planBooks.map((planBook) => planBook.bookId)), [planBooks]);
+	const excludedSet = useMemo(() => new Set(excludedBookIds), [excludedBookIds]);
+	const selectedSet = useMemo(() => new Set(selectedBookIds), [selectedBookIds]);
+
+	const toggleBook = (bookId: number) => {
+		if (excludedSet.has(bookId)) {
+			return;
+		}
+		const next = new Set(selectedBookIds);
+		if (next.has(bookId)) {
+			next.delete(bookId);
+		} else {
+			next.add(bookId);
+		}
+		onSelectionChange(Array.from(next));
+	};
+
+	const selectableBooks = useMemo(
+		() => books.filter((book) => !excludedSet.has(book.id)),
+		[books, excludedSet],
+	);
+
+	const oldTestamentIds = useMemo(
+		() => selectableBooks.filter((book) => book.testament === "OT").map((book) => book.id),
+		[selectableBooks],
+	);
+
+	const newTestamentIds = useMemo(
+		() => selectableBooks.filter((book) => book.testament === "NT").map((book) => book.id),
+		[selectableBooks],
+	);
+
+	const handleQuickAdd = (next: number[]) => {
+		// Merge with the existing selection so quick-adds combine instead of
+		// replace (Select all + tweak is the most common flow).
+		const merged = new Set(selectedBookIds);
+		for (const id of next) merged.add(id);
+		onSelectionChange(Array.from(merged));
+	};
+
+	const handleClear = () => onSelectionChange([]);
 
 	return (
-		<Card className="p-5 md:p-6">
-			<div className="space-y-4">
-				<div>
-					<h2 className="font-semibold text-lg">{t("builder.bookPicker.title")}</h2>
-				</div>
+		<Card className="p-4 md:p-5 gap-4 flex flex-col">
+			<div className="gap-2 flex items-center justify-between">
+				<h2 className="font-semibold text-lg">{t("editor.bookPicker.title")}</h2>
+				{onAddSelected ? (
+					<Button
+						type="button"
+						size="sm"
+						onClick={() => onAddSelected(selectedBookIds)}
+						disabled={selectedBookIds.length === 0 || isAdding}
+						loading={isAdding}
+					>
+						<PlusIcon className="mr-1.5 size-4" />
+						{t("editor.bookPicker.addSelected", { count: selectedBookIds.length })}
+					</Button>
+				) : null}
+			</div>
 
-				<Input
-					value={search}
-					onChange={(event) => setSearch(event.target.value)}
-					placeholder={t("builder.bookPicker.searchPlaceholder")}
-				/>
+			<Input
+				value={search}
+				onChange={(event) => setSearch(event.target.value)}
+				placeholder={t("editor.bookPicker.searchPlaceholder")}
+			/>
 
-				<Tabs
-					value={testament}
-					onValueChange={(value) => setTestament(value as "ALL" | "OT" | "NT")}
+			<Tabs value={testament} onValueChange={(value) => setTestament(value as "ALL" | "OT" | "NT")}>
+				<TabsList className="w-full justify-start">
+					{TESTAMENT_OPTIONS.map((option) => (
+						<TabsTrigger key={option.value} value={option.value}>
+							{t(option.labelKey)}
+						</TabsTrigger>
+					))}
+				</TabsList>
+			</Tabs>
+
+			<div className="gap-1.5 flex flex-wrap">
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onClick={() => handleQuickAdd(selectableBooks.map((book) => book.id))}
+					disabled={selectableBooks.length === 0}
 				>
-					<TabsList className="w-full justify-start">
-						{TESTAMENT_OPTIONS.map((option) => (
-							<TabsTrigger key={option.value} value={option.value}>
-								{t(option.labelKey)}
-							</TabsTrigger>
+					{t("editor.bookPicker.selectAll")}
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onClick={() => handleQuickAdd(oldTestamentIds)}
+					disabled={oldTestamentIds.length === 0}
+				>
+					{t("editor.bookPicker.selectOT")}
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onClick={() => handleQuickAdd(newTestamentIds)}
+					disabled={newTestamentIds.length === 0}
+				>
+					{t("editor.bookPicker.selectNT")}
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="ghost"
+					onClick={handleClear}
+					disabled={selectedBookIds.length === 0}
+				>
+					{t("editor.bookPicker.clear")}
+				</Button>
+			</div>
+
+			<div className="space-y-1 pr-1 max-h-[60vh] overflow-y-auto">
+				{isPending ? (
+					<div className="space-y-1.5">
+						{Array.from({ length: 8 }).map((_, index) => (
+							<div key={index} className="h-12 animate-pulse rounded-md bg-muted" />
 						))}
-					</TabsList>
-				</Tabs>
-
-				<div className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
-					{isPending ? (
-						<div className="space-y-2">
-							{Array.from({ length: 8 }).map((_, index) => (
-								<div key={index} className="h-14 animate-pulse rounded-xl bg-muted" />
-							))}
-						</div>
-					) : books.length === 0 ? (
-						<p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-							{t("builder.bookPicker.empty")}
-						</p>
-					) : (
-						books.map((book) => {
-							const isAdded = addedBookIds.has(book.id);
-
-							return (
-								<div
-									key={book.id}
-									className="flex items-center justify-between gap-3 rounded-xl border p-3"
-								>
-									<div className={isAdded ? "opacity-60" : ""}>
-										<p className="font-medium">{book.name}</p>
-										<div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+					</div>
+				) : books.length === 0 ? (
+					<p className="px-4 py-8 text-sm rounded-md border border-dashed text-center text-muted-foreground">
+						{t("editor.bookPicker.empty")}
+					</p>
+				) : (
+					books.map((book) => {
+						const isInPlan = excludedSet.has(book.id);
+						const isSelected = selectedSet.has(book.id);
+						return (
+							<button
+								key={book.id}
+								type="button"
+								disabled={isInPlan}
+								onClick={() => toggleBook(book.id)}
+								className={cn(
+									"gap-3 px-3 py-2 text-sm flex w-full items-center justify-between rounded-md border text-left transition-colors",
+									isInPlan
+										? "border-border bg-muted/40 text-muted-foreground"
+										: isSelected
+											? "border-primary bg-primary/5"
+											: "border-border bg-background hover:bg-accent",
+								)}
+							>
+								<span className="min-w-0 gap-3 flex items-center">
+									<span
+										className={cn(
+											"size-5 rounded flex items-center justify-center border",
+											isSelected
+												? "border-primary bg-primary text-primary-foreground"
+												: "border-border bg-background",
+										)}
+										aria-hidden
+									>
+										{isSelected ? <CheckIcon className="size-3.5" /> : null}
+									</span>
+									<span className="min-w-0">
+										<span className="font-medium block truncate">{book.name}</span>
+										<span className="mt-0.5 gap-2 text-xs flex items-center text-muted-foreground">
 											<Badge status={book.testament === "OT" ? "warning" : "info"}>
 												{book.testament}
 											</Badge>
-											<span>
-												{t("builder.bookPicker.chaptersCount", {
-													count: book.chapterCount,
-												})}
-											</span>
-										</div>
-									</div>
-
-									<Button
-										type="button"
-										size="sm"
-										variant={isAdded ? "secondary" : "outline"}
-										disabled={isAdded || addPlanBookMutation.isPending}
-										onClick={() => addPlanBookMutation.mutate({ planId, bookId: book.id })}
-									>
-										{isAdded ? (
-											<>
-												<CheckIcon className="mr-1.5 size-4" />
-												{t("builder.bookPicker.alreadyAdded")}
-											</>
-										) : (
-											<>
-												<PlusIcon className="mr-1.5 size-4" />
-												{t("builder.bookPicker.add")}
-											</>
-										)}
-									</Button>
-								</div>
-							);
-						})
-					)}
-				</div>
+											{t("editor.bookPicker.chaptersCount", {
+												count: book.chapterCount,
+											})}
+										</span>
+									</span>
+								</span>
+								{isInPlan ? (
+									<span className="text-xs text-muted-foreground">
+										{t("editor.bookPicker.inPlan")}
+									</span>
+								) : null}
+							</button>
+						);
+					})
+				)}
 			</div>
 		</Card>
 	);
